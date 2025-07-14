@@ -1,20 +1,43 @@
+// React kütüphanesini import eder
 import React from "react";
+// React Router'dan Link bileşenini import eder (eğer routing kullanılıyorsa)
 import { Link } from "react-router-dom";
 
-const Navbar = () => (
-  <nav
-    style={{
-      background: "#23272b",
-      padding: "16px 0",
-      color: "white",
-      fontSize: "2rem",
-      paddingLeft: "16px",
-    }}
-  >
-    <Link to="/" style={{ color: "white", textDecoration: "none" }}>
-      Home
-    </Link>
-  </nav>
-);
+// Navbar bileşeni, uygulamanın üst kısmında gezinme çubuğu olarak kullanılır
+function Navbar({ isLoggedIn, onLogout }) {
+  // Bileşenin render edilen kısmı
+  return (
+    // Bootstrap ile stillendirilmiş bir navbar
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div className="container">
+        {/* Sol üstteki logo veya ana sayfa linki */}
+        <Link className="navbar-brand" to="/">
+          Home
+        </Link>
+        {/* Navbar'ın sağ kısmı */}
+        <div className="collapse navbar-collapse">
+          <ul className="navbar-nav ms-auto">
+            {/* Kullanıcı giriş yaptıysa çıkış butonu göster */}
+            {isLoggedIn ? (
+              <li className="nav-item">
+                <button className="btn btn-outline-light" onClick={onLogout}>
+                  Logout
+                </button>
+              </li>
+            ) : (
+              // Giriş yapılmadıysa login linki göster
+              <li className="nav-item">
+                <Link className="nav-link" to="/login">
+                  Login
+                </Link>
+              </li>
+            )}
+          </ul>
+        </div>
+      </div>
+    </nav>
+  );
+}
 
+// Navbar bileşenini dışa aktarır
 export default Navbar;

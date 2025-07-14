@@ -1,351 +1,339 @@
+// React ve gerekli hook'ları import eder
 import React, { useEffect, useState } from "react";
 
-// Yeni öğrenci eklerken kullanılacak başlangıç formu
-const initialForm = { name: "", surname: "", number: "" };
-
-// Öğrenci listesini ve işlemlerini yöneten ana React component'i
-const StudentList = () => {
-  // students: Öğrenci listesini tutar
-  // loading: Yükleniyor mu?
-  // showModal: Modal açık mı?
-  // form: Form verileri
-  // editId: Düzenlenen öğrenci id'si
-  // searchTerm: Arama kutusundaki değer
-  // searchResults: Arama sonuçları
-  // isSearching: Arama işlemi devam ediyor mu?
+// StudentList bileşeni, öğrenci listesini ve işlemlerini yönetir
+function StudentList({ role }) {
+  // Öğrenci listesini tutan state
   const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState(initialForm);
+  // Hata mesajını tutan state
+  const [error, setError] = useState("");
+  // Ekleme formunun gösterilip gösterilmeyeceğini tutan state
+  const [showAddForm, setShowAddForm] = useState(false);
+  // Yeni öğrenci ekleme formu için state
+  const [newStudent, setNewStudent] = useState({
+    name: "",
+    surname: "",
+    number: "",
+  });
+  // Düzenlenen öğrencinin id'sini tutan state
   const [editId, setEditId] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
+  // Düzenleme formu için öğrenci bilgilerini tutan state
+  const [editStudent, setEditStudent] = useState({
+    name: "",
+    surname: "",
+    number: "",
+  });
+  // Arama kutusundaki değeri tutan state
+  const [search, setSearch] = useState("");
 
-  // Component yüklendiğinde öğrencileri getirir
+  // JWT token'ı localStorage'dan alır
+  const token = localStorage.getItem("token");
+  // Kullanıcının admin olup olmadığını kontrol eder
+  const isAdmin = role === "ADMIN";
+
+  // Hata mesajını ekranda 3 saniye gösterip otomatik silen fonksiyon
+  function showError(msg) {
+    setError(msg);
+    setTimeout(() => setError(""), 3000);
+  }
+
+  // Öğrenci listesini ve arama işlemini yönetir
   useEffect(() => {
-    fetchStudents();
-  }, []);
-
-  // Tüm öğrencileri backend'den çeker
-  const fetchStudents = () => {
-    fetch("http://localhost:8080/api/v3/students")
-      .then((res) => res.json())
-      .then((data) => {
-        setStudents(data);
-        setLoading(false);
-      });
-  };
-
-  // Arama kutusuna yazıldıkça backend'den arama yapar
-  const handleSearch = (searchValue) => {
-    const value = searchValue.trim();
-    setSearchTerm(value);
-
-    if (value === "") {
-      setSearchResults([]);
-      setIsSearching(false);
-      return;
+    // API endpointini belirler
+    let url = "http://localhost:8080/api/v3/students";
+    if (search.trim() !== "") {
+      url = `http://localhost:8080/api/v3/students/search?q=${encodeURIComponent(
+        search
+      )}`;
     }
-
-    setIsSearching(true);
-    // Eğer sadece rakamlardan oluşuyorsa numaraya göre ara
-    const isNumber = /^\d+$/.test(value);
-    const endpoint = isNumber
-      ? `http://localhost:8080/api/v3/students/search/number?number=${encodeURIComponent(
-          value
-        )}`
-      : `http://localhost:8080/api/v3/students/search?q=${encodeURIComponent(
-          value
-        )}`;
-    fetch(endpoint)
-      .then((res) => res.json())
-      .then((data) => {
-        setSearchResults(data);
-        setIsSearching(false);
+    // Öğrenci listesini backend'den çeker
+    fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.message || "Listeleme başarısız!");
+        }
+        return res.json();
       })
-      .catch((error) => {
-        console.error("Arama hatası:", error);
-        setIsSearching(false);
-      });
-  };
-
-  // Arama sonuçlarını temizler
-  const clearSearch = () => {
-    setSearchTerm("");
-    setSearchResults([]);
-    setIsSearching(false);
-  };
-
-  // Form input değişikliklerini yönetir
-  const handleInputChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  // Ekleme veya güncelleme işlemini yönetir
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (editId === null) {
-      // Yeni öğrenci ekle
-      fetch("http://localhost:8080/api/v3/students", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      })
-        .then((res) => res.json())
-        .then(() => {
-          fetchStudents();
-          setShowModal(false);
-          setForm(initialForm);
-        });
-    } else {
-      // Öğrenci güncelle
-      fetch(`http://localhost:8080/api/v3/students/${editId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      })
-        .then((res) => res.json())
-        .then(() => {
-          fetchStudents();
-          setShowModal(false);
-          setForm(initialForm);
-          setEditId(null);
-        });
-    }
-  };
+      .then((data) => setStudents(data))
+      .catch((err) => showError(err.message));
+  }, [token, search]);
 
   // Öğrenci silme işlemini yönetir
-  const handleDelete = (id) => {
-    if (window.confirm("Silmek istediğinize emin misiniz?")) {
+  function handleDelete(id) {
+    if (window.confirm("Bu öğrenciyi silmek istediğine emin misin?")) {
       fetch(`http://localhost:8080/api/v3/students/${id}`, {
         method: "DELETE",
-      }).then(() => fetchStudents());
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.message || "Silme başarısız!");
+          }
+          setStudents((prev) => prev.filter((s) => s.id !== id));
+        })
+        .catch((err) => showError(err.message));
     }
-  };
+  }
 
-  // Düzenleme işlemini başlatır
-  const handleEdit = (student) => {
-    setForm({
-      name: student.name,
-      surname: student.surname,
-      number: student.number,
-    });
-    setEditId(student.id);
-    setShowModal(true);
-  };
+  // Yeni öğrenci ekleme işlemini yönetir
+  function handleAddSubmit(e) {
+    e.preventDefault();
+    fetch("http://localhost:8080/api/v3/students", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(newStudent),
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.message || "Ekleme başarısız!");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setStudents((prev) => [...prev, data]);
+        setShowAddForm(false);
+        setNewStudent({ name: "", surname: "", number: "" });
+      })
+      .catch((err) => showError(err.message));
+  }
 
-  // Yükleniyorsa loading göster
-  if (loading) return <div>Loading...</div>;
+  // Öğrenci güncelleme işlemini yönetir
+  function handleEditSubmit(e, id) {
+    e.preventDefault();
+    fetch(`http://localhost:8080/api/v3/students/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(editStudent),
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.message || "Güncelleme başarısız!");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setStudents((prev) => prev.map((s) => (s.id === id ? data : s)));
+        setEditId(null);
+      })
+      .catch((err) => showError(err.message));
+  }
 
-  // Component'in ana render'ı
+  // Bileşenin render edilen kısmı
   return (
-    <div className="container" style={{ marginTop: "40px" }}>
+    <div className="container mt-5">
       {/* Başlık ve ekle butonu */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 style={{ fontWeight: "bold" }}>Students</h1>
-        <button
-          className="btn btn-success"
-          style={{ width: "150px", fontSize: "1.2rem" }}
-          onClick={() => {
-            setForm(initialForm);
-            setEditId(null);
-            setShowModal(true);
-          }}
-        >
-          Add Student
-        </button>
+      <div className="d-flex flex-row justify-content-between align-items-center mb-4">
+        <h2 className="fw-bold">Students</h2>
+        {isAdmin && (
+          <button
+            className="btn btn-success"
+            onClick={() => setShowAddForm(true)}
+          >
+            Add Student
+          </button>
+        )}
       </div>
+      {/* Hata mesajı */}
+      {error && <div className="alert alert-danger">{error}</div>}
 
-      {/* Arama Kutusu */}
-      <div className="row mb-4 justify-content-center">
-        <div className="col-md-8">
-          <div className="search-box position-relative">
-            <input
-              type="text"
-              className="form-control search-input"
-              placeholder="🔍 Öğrenci adı, soyadı veya numarası ile ara..."
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-              style={{ fontSize: "1.2rem", paddingRight: "40px" }}
-            />
-            {searchTerm && (
-              <button
-                className="btn search-clear-btn"
-                type="button"
-                onClick={clearSearch}
-                tabIndex={-1}
-                style={{
-                  position: "absolute",
-                  right: 10,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  fontSize: "1.3rem",
-                  color: "#888",
-                  background: "none",
-                  border: "none",
-                  boxShadow: "none",
-                }}
-              >
-                ✕
-              </button>
-            )}
-          </div>
-          {isSearching && <small className="text-muted">Aranıyor...</small>}
-          {searchTerm && !isSearching && (
-            <small className="text-muted">
-              {searchResults.length} sonuç bulundu
-            </small>
-          )}
+      {/* Arama kutusu */}
+      <div className="row mb-3">
+        <div className="col-12 col-md-6">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Search by name, surname or number"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
       </div>
 
+      {/* Ekleme Formu */}
+      {isAdmin && showAddForm && (
+        <form className="mb-3" onSubmit={handleAddSubmit}>
+          <div className="row g-2">
+            <div className="col">
+              <input
+                className="form-control"
+                placeholder="Name"
+                value={newStudent.name}
+                onChange={(e) =>
+                  setNewStudent({ ...newStudent, name: e.target.value })
+                }
+                required
+              />
+            </div>
+            <div className="col">
+              <input
+                className="form-control"
+                placeholder="Surname"
+                value={newStudent.surname}
+                onChange={(e) =>
+                  setNewStudent({ ...newStudent, surname: e.target.value })
+                }
+                required
+              />
+            </div>
+            <div className="col">
+              <input
+                className="form-control"
+                placeholder="Number"
+                value={newStudent.number}
+                onChange={(e) =>
+                  setNewStudent({ ...newStudent, number: e.target.value })
+                }
+                required
+              />
+            </div>
+            <div className="col-auto">
+              <button className="btn btn-success" type="submit">
+                Save
+              </button>
+              <button
+                className="btn btn-secondary ms-2"
+                type="button"
+                onClick={() => setShowAddForm(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </form>
+      )}
+
       {/* Öğrenci tablosu */}
-      <table className="table table-bordered">
+      <table className="table table-bordered table-striped">
         <thead>
           <tr>
-            <th
-              style={{ background: "#000", color: "#fff", borderColor: "#000" }}
-            >
-              Name
-            </th>
-            <th
-              style={{ background: "#000", color: "#fff", borderColor: "#000" }}
-            >
-              Surname
-            </th>
-            <th
-              style={{ background: "#000", color: "#fff", borderColor: "#000" }}
-            >
-              Number
-            </th>
-            <th
-              style={{
-                background: "#000",
-                color: "#fff",
-                width: "110px",
-                textAlign: "center",
-                borderColor: "#000",
-              }}
-            >
-              Actions
-            </th>
+            <th className="bg-dark text-white">Name</th>
+            <th className="bg-dark text-white">Surname</th>
+            <th className="bg-dark text-white">Number</th>
+            {isAdmin && (
+              <th
+                className="bg-dark text-white text-center"
+                style={{ width: "140px" }}
+              >
+                Actions
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>
-          {/* Arama varsa arama sonuçlarını, yoksa tüm öğrencileri göster */}
-          {searchTerm && searchResults.length === 0 && !isSearching ? (
-            <tr>
-              <td colSpan="4" className="text-center text-muted">
-                "{searchTerm}" için sonuç bulunamadı.
-              </td>
-            </tr>
-          ) : (
-            (searchTerm ? searchResults : students).map((student) => (
-              <tr key={student.id}>
-                <td>{student.name}</td>
-                <td>{student.surname}</td>
-                <td>{student.number}</td>
-                <td
-                  style={{
-                    width: "110px",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "6px",
-                      justifyContent: "center",
-                    }}
+          {/* Öğrenci satırlarını render eder */}
+          {students.map((student) => (
+            <tr key={student.id}>
+              {/* Eğer düzenleme modundaysa inputlar gösterilir */}
+              {editId === student.id ? (
+                <>
+                  <td>
+                    <input
+                      className="form-control"
+                      value={editStudent.name}
+                      onChange={(e) =>
+                        setEditStudent({ ...editStudent, name: e.target.value })
+                      }
+                    />
+                  </td>
+                  <td>
+                    <input
+                      className="form-control"
+                      value={editStudent.surname}
+                      onChange={(e) =>
+                        setEditStudent({
+                          ...editStudent,
+                          surname: e.target.value,
+                        })
+                      }
+                    />
+                  </td>
+                  <td>
+                    <input
+                      className="form-control"
+                      value={editStudent.number}
+                      onChange={(e) =>
+                        setEditStudent({
+                          ...editStudent,
+                          number: e.target.value,
+                        })
+                      }
+                    />
+                  </td>
+                  <td
+                    className="text-center"
+                    style={{ width: "140px", whiteSpace: "nowrap" }}
                   >
                     <button
-                      className="btn btn-primary"
-                      style={{ minWidth: "48px", padding: "4px 12px" }}
-                      onClick={() => handleEdit(student)}
+                      className="btn btn-success btn-sm me-2"
+                      onClick={(e) => handleEditSubmit(e, student.id)}
                     >
-                      Edit
+                      Save
                     </button>
                     <button
-                      className="btn btn-danger"
-                      style={{ minWidth: "60px", padding: "4px 12px" }}
-                      onClick={() => handleDelete(student.id)}
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => setEditId(null)}
                     >
-                      Delete
+                      Cancel
                     </button>
-                  </div>
-                </td>
-              </tr>
-            ))
-          )}
+                  </td>
+                </>
+              ) : (
+                <>
+                  {/* Normal modda öğrenci bilgileri gösterilir */}
+                  <td>{student.name}</td>
+                  <td>{student.surname}</td>
+                  <td>{student.number}</td>
+                  {isAdmin && (
+                    <td
+                      className="text-center"
+                      style={{ width: "140px", whiteSpace: "nowrap" }}
+                    >
+                      <button
+                        className="btn btn-primary btn-sm me-2"
+                        onClick={() => {
+                          setEditId(student.id);
+                          setEditStudent({
+                            name: student.name,
+                            surname: student.surname,
+                            number: student.number,
+                          });
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleDelete(student.id)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  )}
+                </>
+              )}
+            </tr>
+          ))}
         </tbody>
       </table>
-
-      {/* Öğrenci ekleme/düzenleme modalı */}
-      {showModal && (
-        <div
-          className="modal show"
-          style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
-        >
-          <div className="modal-dialog">
-            <form onSubmit={handleSubmit}>
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">
-                    {editId === null ? "Add Student" : "Edit Student"}
-                  </h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => setShowModal(false)}
-                  ></button>
-                </div>
-                <div className="modal-body">
-                  <input
-                    className="form-control mb-2"
-                    name="name"
-                    placeholder="Name"
-                    value={form.name}
-                    onChange={handleInputChange}
-                    required
-                  />
-                  <input
-                    className="form-control mb-2"
-                    name="surname"
-                    placeholder="Surname"
-                    value={form.surname}
-                    onChange={handleInputChange}
-                    required
-                  />
-                  <input
-                    className="form-control mb-2"
-                    name="number"
-                    placeholder="Number"
-                    value={form.number}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setShowModal(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn btn-success">
-                    {editId === null ? "Add" : "Update"}
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
-};
+}
 
+// StudentList bileşenini dışa aktarır
 export default StudentList;
