@@ -1,7 +1,12 @@
-// React ve useState hook'unu import eder
+// Kullanıcı giriş işlemini yöneten Login bileşeni.
 import React, { useState } from "react";
 
-// Login bileşeni, kullanıcı giriş işlemini yönetir
+/**
+ * Login bileşeni, kullanıcıdan kullanıcı adı ve şifre alır, backend'e giriş isteği gönderir.
+ * Başarılı girişte token ve rol localStorage'a kaydedilir, onLogin fonksiyonu çağrılır.
+ *
+ * @param {function} onLogin - Giriş başarılı olursa çağrılır, kullanıcı rolünü parametre olarak alır.
+ */
 function Login({ onLogin }) {
   // Kullanıcı adı için state
   const [username, setUsername] = useState("");
@@ -10,22 +15,20 @@ function Login({ onLogin }) {
   // Hata mesajı için state
   const [error, setError] = useState("");
 
-  // Form gönderildiğinde çalışacak fonksiyon
+  /**
+   * Form gönderildiğinde backend'e giriş isteği gönderir
+   * @param {Event} e - Form submit event'i
+   */
   const handleSubmit = async (e) => {
-    // Sayfanın yeniden yüklenmesini engeller
     e.preventDefault();
-    // Hata mesajını sıfırlar
     setError("");
     try {
-      // Backend'e giriş isteği gönderir
       const response = await fetch("http://localhost:8080/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-      // Yanıt başarılı değilse hata fırlatır
       if (!response.ok) throw new Error("Giriş başarısız!");
-      // Yanıtı JSON olarak çözer
       const data = await response.json();
       // Token, rol ve kullanıcı adını localStorage'a kaydeder
       localStorage.setItem("token", data.token);
@@ -34,12 +37,10 @@ function Login({ onLogin }) {
       // onLogin fonksiyonu varsa, kullanıcı rolünü ileterek çağırır
       if (onLogin) onLogin(data.role);
     } catch (err) {
-      // Hata durumunda kullanıcıya mesaj gösterir
       setError("Kullanıcı adı veya şifre hatalı!");
     }
   };
 
-  // Bileşenin render edilen kısmı
   return (
     // Sayfanın ortasında hizalanmış bir div
     <div
@@ -94,5 +95,4 @@ function Login({ onLogin }) {
   );
 }
 
-// Login bileşenini dışa aktarır
 export default Login;

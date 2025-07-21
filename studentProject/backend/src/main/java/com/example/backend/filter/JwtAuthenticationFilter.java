@@ -1,38 +1,43 @@
 // Bu dosya, gelen HTTP isteklerinde JWT doğrulaması yapan filtreyi tanımlar.
 package com.example.backend.filter;
 
-// Kullanıcı detay servisi ve JWT yardımcı sınıfını import eder
 import com.example.backend.service.concretes.AppUserDetailsService;
 import com.example.backend.utility.JwtUtil;
-// Servlet ve filtre işlemleri için gerekli kütüphaneleri import eder
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-// Spring Security ve Spring bileşenlerini import eder
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import java.io.IOException;
 
-// Bu sınıf bir Spring bileşenidir ve her istekte bir kez çalışır
+/**
+ * Gelen HTTP isteklerinde JWT doğrulaması yapan filtre.
+ * Her istekte Authorization header'ını kontrol eder, token geçerliyse kullanıcıyı güvenlik bağlamına ekler.
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    // JWT işlemleri için yardımcı sınıf
+    /** JWT işlemleri için yardımcı sınıf */
     @Autowired
     private JwtUtil jwtUtil;
 
-    // Kullanıcı detaylarını yüklemek için servis
+    /** Kullanıcı detaylarını yüklemek için servis */
     @Autowired
     private AppUserDetailsService userDetailsService;
 
-    // Her HTTP isteğinde çalışacak filtre metodu
+    /**
+     * Her HTTP isteğinde çalışacak filtre metodu
+     * @param request HTTP isteği
+     * @param response HTTP yanıtı
+     * @param filterChain Filtre zinciri
+     */
     @Override
+    @SuppressWarnings("null")
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 

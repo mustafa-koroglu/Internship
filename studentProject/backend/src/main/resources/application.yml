@@ -1,0 +1,14 @@
+# Spring Boot uygulamasının ana yapılandırma dosyasıdır
+server:
+  port: 8080
+spring:
+  application:
+    # Uygulamanın adı
+    name: backend
+  cloud:
+    config:
+      # Konfigürasyon sunucusunun adresi
+      uri: http://localhost:8888
+  config:
+    # Harici konfigürasyon sunucusundan ayarları içe aktarır
+    import: "configserver:"

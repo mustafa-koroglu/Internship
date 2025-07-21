@@ -1,49 +1,60 @@
-// Bu dosya, öğrenci işlemlerinin iş mantığını yöneten servis sınıfını tanımlar.
+// Bu sınıf, öğrenci işlemlerinin iş mantığını yöneten servis katmanıdır.
+// Öğrenci ile ilgili CRUD ve arama işlemlerini gerçekleştirir.
 package com.example.backend.service.concretes;
 
-// Öğrenci repository'sini import eder
 import com.example.backend.dataAccess.StudentsRepository;
-// Öğrenci entity'sini import eder
 import com.example.backend.entities.Student;
-// Kaynak bulunamadığında fırlatılan özel exception sınıfını import eder
 import com.example.backend.exception.ResourceNotFoundException;
-// Öğrenci servis arayüzünü import eder
 import com.example.backend.service.abstracts.StudentService;
-// Spring'in dependency injection ve servis anotasyonunu import eder
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-// Liste veri tipi için import
 import java.util.List;
 
-// Bu sınıf bir servis bileşenidir (Spring tarafından yönetilir)
+/**
+ * Öğrenci işlemlerinin iş mantığını yöneten servis sınıfı.
+ * Veritabanı işlemleri ve iş kuralları burada toplanır.
+ */
 @Service
 public class StudentManager implements StudentService {
 
-    // Öğrenci veritabanı işlemleri için repository
+    // Öğrenci veritabanı işlemleri için repository bağımlılığı
     @Autowired
     private StudentsRepository studentsRepository;
 
-    // Tüm öğrencileri getirir
+
+ // Tüm öğrencileri getirir (veritabanındaki tüm öğrencileri döner)
     @Override
     public List<Student> findAll() {
         return studentsRepository.findAll();
     }
 
-    // ID'ye göre öğrenci getirir, yoksa exception fırlatır
+    /**
+     * ID'ye göre öğrenci getirir, yoksa exception fırlatır
+     * @param id Öğrenci ID
+     * @return Öğrenci
+     */
     @Override
     public Student findById(int id) {
         return studentsRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Öğrenci bulunamadı: " + id));
     }
 
-    // Yeni öğrenci kaydeder
+    /**
+     * Yeni öğrenci kaydeder (veritabanına ekler)
+     * @param student Yeni öğrenci
+     * @return Kaydedilen öğrenci
+     */
     @Override
     public Student save(Student student) {
         return studentsRepository.save(student);
     }
 
-    // Öğrenci günceller
+    /**
+     * Öğrenci günceller (id ile bulup, yeni bilgileriyle günceller)
+     * @param id Öğrenci ID
+     * @param studentDetails Güncellenecek bilgiler
+     * @return Güncellenen öğrenci
+     */
     @Override
     public Student update(int id, Student studentDetails) {
         // Güncellenecek öğrenciyi bulur, yoksa exception fırlatır
@@ -57,26 +68,27 @@ public class StudentManager implements StudentService {
         return studentsRepository.save(updateStudent);
     }
 
-    // ID'ye göre öğrenci siler, yoksa exception fırlatır
+    /**
+     * ID'ye göre öğrenci siler, yoksa exception fırlatır
+     * @param id Öğrenci ID
+     */
     @Override
     public void deleteById(int id) {
+        // Silinecek öğrencinin varlığını kontrol eder
         if (!studentsRepository.existsById(id)) {
             throw new ResourceNotFoundException("Öğrenci bulunamadı: " + id);
         }
         studentsRepository.deleteById(id);
     }
+
+    /**
+     * İsim, soyisim veya numaraya göre arama yapar (başlangıcı eşleşenler)
+     * @param searchTerm Arama terimi
+     * @return Öğrenci listesi
+     */
     @Override
-public List<Student> searchByName(String name) {
-    return studentsRepository.findByNameContainingIgnoreCase(name);
-}
-
-@Override
-public List<Student> searchByNameOrSurname(String searchTerm) {
-    return studentsRepository.findByNameOrSurnameOrNumberStartsWithIgnoreCase(searchTerm);
-}
-
-@Override
-public List<Student> searchByNumber(String number) {
-    return studentsRepository.findByNumberStartingWith(number);
-}
+    public List<Student> search(String searchTerm) {
+        // Arama terimi ile isim, soyisim veya numarası başlayan öğrencileri döner
+        return studentsRepository.findByNameOrSurnameOrNumberStartsWithIgnoreCase(searchTerm);
+    }
 }

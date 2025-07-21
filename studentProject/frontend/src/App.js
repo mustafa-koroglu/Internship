@@ -1,19 +1,18 @@
-// React ve gerekli hook'u import eder
+// Uygulamanın ana bileşeni ve yönlendirme yapısı burada tanımlanır.
 import React, { useState } from "react";
-// React Router'dan gerekli bileşenleri import eder
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-// Login ve StudentList bileşenlerini import eder
 import Login from "./Login";
 import StudentList from "./StudentList";
+import RegisterModal from "./RegisterModal";
 
-// Ana sayfa bileşeni (Home)
+/**
+ * Ana sayfa bileşeni (Home)
+ * Giriş yapmış kullanıcıya hoş geldiniz ve öğrenci listesine git butonu gösterir.
+ */
 function Home() {
-  // Ana sayfa içeriğini render eder
   return (
     <div className="container mt-5 text-center">
-      {/* Başlık */}
       <h1>Welcome to Student Management System</h1>
-      {/* Öğrenci listesine yönlendiren buton */}
       <Link to="/students" className="btn btn-primary mt-3">
         Go to Student List
       </Link>
@@ -21,25 +20,33 @@ function Home() {
   );
 }
 
-// Uygulamanın ana bileşeni
+/**
+ * Uygulamanın ana bileşeni.
+ * Kullanıcı rolüne göre yönlendirme, navbar ve modal yönetimi burada yapılır.
+ */
 function App() {
   // Kullanıcı rolünü state olarak tutar (localStorage'dan başlatılır)
   const [role, setRole] = useState(localStorage.getItem("role") || null);
+  // Kullanıcı ekleme modalının açık/kapalı durumu
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
 
-  // Giriş yapıldığında rolü günceller
+  /**
+   * Giriş yapıldığında rolü günceller
+   * @param {string} userRole - Kullanıcı rolü (ADMIN/USER)
+   */
   const handleLogin = (userRole) => {
     setRole(userRole);
   };
 
-  // Çıkış yapıldığında localStorage'ı temizler ve rolü sıfırlar
+  /**
+   * Çıkış yapıldığında localStorage'ı temizler ve rolü sıfırlar
+   */
   const handleLogout = () => {
     localStorage.clear();
     setRole(null);
   };
 
-  // Uygulamanın render edilen kısmı
   return (
-    // Router ile sayfa yönlendirmelerini yönetir
     <Router>
       {/* Sadece giriş yapılmışsa navbar gösterilir */}
       {role && (
@@ -49,12 +56,27 @@ function App() {
             <Link to="/" className="navbar-brand">
               Home
             </Link>
-            {/* Çıkış butonu */}
-            <button className="btn btn-outline-light" onClick={handleLogout}>
-              Çıkış Yap
-            </button>
+            <div className="d-flex align-items-center gap-2">
+              {/* Sadece admin ise kullanıcı ekle butonu */}
+              {role === "ADMIN" && (
+                <button
+                  className="btn btn-warning"
+                  onClick={() => setShowRegisterModal(true)}
+                >
+                  Kullanıcı Ekle
+                </button>
+              )}
+              {/* Çıkış butonu */}
+              <button className="btn btn-outline-light" onClick={handleLogout}>
+                Çıkış Yap
+              </button>
+            </div>
           </div>
         </nav>
+      )}
+      {/* Kullanıcı ekleme modalı */}
+      {showRegisterModal && (
+        <RegisterModal onClose={() => setShowRegisterModal(false)} />
       )}
       {/* Sayfa yönlendirme kuralları */}
       <Routes>
@@ -75,5 +97,4 @@ function App() {
   );
 }
 
-// App bileşenini dışa aktarır
 export default App;

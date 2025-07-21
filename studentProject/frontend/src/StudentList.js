@@ -1,7 +1,12 @@
-// React ve gerekli hook'ları import eder
+// Öğrenci listesini ve işlemlerini yöneten ana bileşen.
 import React, { useEffect, useState } from "react";
 
-// StudentList bileşeni, öğrenci listesini ve işlemlerini yönetir
+/**
+ * StudentList bileşeni, öğrenci listesini, arama, ekleme, silme ve güncelleme işlemlerini yönetir.
+ * Admin ve user rolleri için farklı buton ve işlemler sunar.
+ *
+ * @param {string} role - Kullanıcı rolü (ADMIN/USER)
+ */
 function StudentList({ role }) {
   // Öğrenci listesini tutan state
   const [students, setStudents] = useState([]);
@@ -31,22 +36,26 @@ function StudentList({ role }) {
   // Kullanıcının admin olup olmadığını kontrol eder
   const isAdmin = role === "ADMIN";
 
-  // Hata mesajını ekranda 3 saniye gösterip otomatik silen fonksiyon
+  /**
+   * Hata mesajını ekranda 3 saniye gösterip otomatik siler
+   * @param {string} msg - Hata mesajı
+   */
   function showError(msg) {
     setError(msg);
     setTimeout(() => setError(""), 3000);
   }
 
-  // Öğrenci listesini ve arama işlemini yönetir
+  /**
+   * Öğrenci listesini ve arama işlemini yönetir
+   * Arama kutusu değiştikçe veya component mount olduğunda çalışır
+   */
   useEffect(() => {
-    // API endpointini belirler
     let url = "http://localhost:8080/api/v3/students";
     if (search.trim() !== "") {
       url = `http://localhost:8080/api/v3/students/search?q=${encodeURIComponent(
         search
       )}`;
     }
-    // Öğrenci listesini backend'den çeker
     fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -63,7 +72,10 @@ function StudentList({ role }) {
       .catch((err) => showError(err.message));
   }, [token, search]);
 
-  // Öğrenci silme işlemini yönetir
+  /**
+   * Öğrenci silme işlemini yönetir
+   * @param {number} id - Silinecek öğrenci id'si
+   */
   function handleDelete(id) {
     if (window.confirm("Bu öğrenciyi silmek istediğine emin misin?")) {
       fetch(`http://localhost:8080/api/v3/students/${id}`, {
@@ -83,7 +95,10 @@ function StudentList({ role }) {
     }
   }
 
-  // Yeni öğrenci ekleme işlemini yönetir
+  /**
+   * Yeni öğrenci ekleme işlemini yönetir
+   * @param {Event} e - Form submit event'i
+   */
   function handleAddSubmit(e) {
     e.preventDefault();
     fetch("http://localhost:8080/api/v3/students", {
@@ -109,7 +124,11 @@ function StudentList({ role }) {
       .catch((err) => showError(err.message));
   }
 
-  // Öğrenci güncelleme işlemini yönetir
+  /**
+   * Öğrenci güncelleme işlemini yönetir
+   * @param {Event} e - Form submit event'i
+   * @param {number} id - Güncellenecek öğrenci id'si
+   */
   function handleEditSubmit(e, id) {
     e.preventDefault();
     fetch(`http://localhost:8080/api/v3/students/${id}`, {
@@ -165,7 +184,7 @@ function StudentList({ role }) {
         </div>
       </div>
 
-      {/* Ekleme Formu */}
+      {/* Ekleme Formu (sadece adminler için) */}
       {isAdmin && showAddForm && (
         <form className="mb-3" onSubmit={handleAddSubmit}>
           <div className="row g-2">

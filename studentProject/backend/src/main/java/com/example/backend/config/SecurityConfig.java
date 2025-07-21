@@ -1,7 +1,6 @@
 // Bu dosya, uygulamanın güvenlik yapılandırmasını (Spring Security) tanımlar.
 package com.example.backend.config;
 
-// Spring Security ve konfigürasyon için gerekli kütüphaneleri import eder
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,20 +14,28 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-// Bu sınıf bir konfigürasyon sınıfıdır ve web güvenliğini etkinleştirir
+/**
+ * Uygulamanın Spring Security güvenlik yapılandırmasını tanımlar.
+ * JWT tabanlı kimlik doğrulama, CORS ve endpoint yetkilendirme kuralları burada belirlenir.
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // CORS yapılandırmasını sağlayan bean'i enjekte eder
+    /** CORS yapılandırmasını sağlayan bean */
     @Autowired
     private CorsConfigurationSource corsConfigurationSource;
 
-    // JWT doğrulama filtresini enjekte eder
+    /** JWT doğrulama filtresi */
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    // Güvenlik filtre zincirini tanımlar ve yapılandırır
+    /**
+     * Güvenlik filtre zincirini tanımlar ve yapılandırır
+     * @param http HttpSecurity nesnesi
+     * @return SecurityFilterChain
+     * @throws Exception
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -57,7 +64,10 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // Şifreleri hashlemek için BCryptPasswordEncoder bean'i tanımlar
+    /**
+     * Şifreleri hashlemek için BCryptPasswordEncoder bean'i tanımlar
+     * @return PasswordEncoder
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

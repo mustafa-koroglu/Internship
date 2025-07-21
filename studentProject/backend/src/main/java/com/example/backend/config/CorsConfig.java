@@ -1,20 +1,24 @@
 // Bu dosya, uygulamanın CORS (Cross-Origin Resource Sharing) ayarlarını yapılandırır.
 package com.example.backend.config;
 
-// Spring ve CORS yapılandırması için gerekli kütüphaneleri import eder
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 import java.util.Arrays;
 
-// Bu sınıf bir konfigürasyon sınıfıdır (Spring tarafından yönetilir)
+/**
+ * Uygulamanın CORS (Cross-Origin Resource Sharing) ayarlarını yapılandıran konfigürasyon sınıfı.
+ * Tüm origin'lere, header'lara ve HTTP metodlarına izin verir.
+ */
 @Configuration
 public class CorsConfig {
 
-    // CORS yapılandırmasını sağlayan bean metodu
+    /**
+     * CORS yapılandırmasını sağlayan bean metodu
+     * @return CorsConfigurationSource
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         // Yeni bir CORS yapılandırma nesnesi oluşturur
@@ -27,7 +31,6 @@ public class CorsConfig {
         configuration.setAllowedHeaders(Arrays.asList("*"));
         // Kimlik bilgisi (cookie, authorization header vs.) iletilmesine izin verir
         configuration.setAllowCredentials(true);
-        
         // CORS yapılandırmasını belirli path'lere uygular
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

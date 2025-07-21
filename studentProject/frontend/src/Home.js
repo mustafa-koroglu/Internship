@@ -1,14 +1,17 @@
-// React kütüphanesini import eder
+// Ana sayfa bileşeni (Home)
 import React from "react";
-// Sayfa yönlendirmesi için useNavigate hook'unu import eder
 import { useNavigate } from "react-router-dom";
 
-// Home bileşeni, ana sayfa olarak kullanılır
+/**
+ * Home bileşeni, uygulamanın ana sayfasıdır.
+ * Hoş geldiniz mesajı ve öğrenci listesine git butonu içerir.
+ *
+ * @returns {JSX.Element}
+ */
 const Home = () => {
-  // Sayfa yönlendirmesi yapmak için navigate fonksiyonunu alır
+  // Sayfa yönlendirmesi yapmak için navigate fonksiyonu
   const navigate = useNavigate();
 
-  // Bileşenin render edilen kısmı
   return (
     // Ortalanmış bir div ile hoş geldiniz mesajı ve buton
     <div style={{ textAlign: "center", marginTop: "100px" }}>
@@ -35,5 +38,4 @@ const Home = () => {
   );
 };
 
-// Home bileşenini dışa aktarır
 export default Home;

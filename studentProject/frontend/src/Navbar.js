@@ -1,11 +1,15 @@
-// React kütüphanesini import eder
+// Uygulamanın üst kısmında gezinme çubuğu olarak kullanılan Navbar bileşeni.
 import React from "react";
-// React Router'dan Link bileşenini import eder (eğer routing kullanılıyorsa)
 import { Link } from "react-router-dom";
 
-// Navbar bileşeni, uygulamanın üst kısmında gezinme çubuğu olarak kullanılır
+/**
+ * Navbar bileşeni, uygulamanın üst kısmında gezinme çubuğu olarak kullanılır.
+ * Kullanıcı giriş yaptıysa çıkış butonu, yapmadıysa login linki gösterir.
+ *
+ * @param {boolean} isLoggedIn - Kullanıcı giriş yapmış mı?
+ * @param {function} onLogout - Çıkış butonuna tıklanınca çağrılır
+ */
 function Navbar({ isLoggedIn, onLogout }) {
-  // Bileşenin render edilen kısmı
   return (
     // Bootstrap ile stillendirilmiş bir navbar
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -39,5 +43,4 @@ function Navbar({ isLoggedIn, onLogout }) {
   );
 }
 
-// Navbar bileşenini dışa aktarır
 export default Navbar;

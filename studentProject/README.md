@@ -1,94 +1,87 @@
-# Student Management System
+# Öğrenci Yönetim Sistemi
 
-Bu proje, öğrenci yönetimi için geliştirilmiş tam yığın (full-stack) bir web uygulamasıdır. Backend Spring Boot (Java), frontend ise React (JavaScript) ile yazılmıştır.
+Bu proje, modern web teknolojileri kullanılarak geliştirilmiş, mikroservis mimarisine sahip tam yığın (full-stack) bir öğrenci yönetim sistemidir.
 
-## Özellikler
+## Proje Mimarisi
 
-- Kullanıcı girişi (JWT ile güvenli kimlik doğrulama)
-- Rol tabanlı yetkilendirme (ADMIN/USER)
-- Öğrenci listeleme, arama, ekleme, güncelleme, silme
-- Öğrenci numarası eşsiz (unique) kontrolü
-- Modern ve responsive arayüz (Bootstrap)
+Proje üç ana bileşenden oluşmaktadır:
 
----
+1.  **Backend (Spring Boot):** Öğrenci verilerinin yönetildiği, RESTful API'ler sunan ana iş mantığı katmanıdır. JWT tabanlı kimlik doğrulama ve yetkilendirme mekanizmalarını içerir.
+2.  **Frontend (React):** Kullanıcıların etkileşimde bulunduğu, backend API'lerini kullanarak verileri listeleyen, ekleyen, güncelleyen ve silen modern bir arayüzdür.
+3.  **Config Server (Spring Cloud Config):** Backend servisinin yapılandırma (konfigürasyon) dosyalarını merkezi bir yerden yönetir. Bu sayede farklı ortamlar (geliştirme, test, production) için ayarları kolayca yönetebiliriz.
 
-## Kurulum
+## Kullanılan Teknolojiler
 
-### 1. Backend (Spring Boot)
-
-#### Gereksinimler
-
-- Java 17 veya üzeri
-- Maven
-- PostgreSQL (veya uygun JDBC destekli başka bir veritabanı)
-
-#### Adımlar
-
-1. `backend/src/main/resources/application.properties` dosyasındaki veritabanı ayarlarını kendi ortamınıza göre düzenleyin.
-2. Terminalde backend klasörüne gidin:
-   ```sh
-   cd backend
-   mvn clean install
-   mvn spring-boot:run
-   ```
-3. Uygulama varsayılan olarak `http://localhost:8080` adresinde çalışacaktır.
-
-### 2. Frontend (React)
-
-#### Gereksinimler
-
-- Node.js (v16+ önerilir)
-- npm
-
-#### Adımlar
-
-1. Terminalde frontend klasörüne gidin:
-   ```sh
-   cd frontend
-   npm install
-   npm start
-   ```
-2. Uygulama varsayılan olarak `http://localhost:3000` adresinde açılır.
+- **Backend:**
+  - Java 21
+  - Spring Boot 3
+  - Spring Security (JWT ile)
+  - Spring Data JPA
+  - Maven
+  - PostgreSQL (veya H2, MySQL vb.)
+- **Frontend:**
+  - React
+  - JavaScript (ES6+)
+  - axios (HTTP istekleri için)
+  - Bootstrap (Stil için)
+- **Yapılandırma:**
+  - Spring Cloud Config Server
 
 ---
 
-## Kullanım
+## Kurulum ve Çalıştırma
 
-- Giriş yapmak için kullanıcı adı ve şifre girin.
-- Rolünüze göre öğrenci ekleyebilir, güncelleyebilir veya silebilirsiniz.
-- Arama kutusunu kullanarak isim, soyisim veya numaraya göre filtreleme yapabilirsiniz.
-- Aynı numaraya sahip iki öğrenci eklenemez; sistem uyarı verir.
+Projeyi çalıştırmak için aşağıdaki adımları sırasıyla takip ediniz.
 
----
+### 1. Config Server
 
-## Önemli Notlar
+Önce yapılandırma sunucusunu ayağa kaldırmalısınız.
 
-- İlk kullanıcıyı ve rolleri veritabanına manuel eklemeniz gerekebilir.
-- JWT token süresi dolarsa tekrar giriş yapmanız gerekir.
-- Backend ve frontend portları farklıdır; CORS ayarları backend'de yapılmıştır.
-
----
-
-## Proje Yapısı
-
-```
-studentProject/
-  backend/   # Spring Boot backend
-    src/main/java/com/example/backend/...
-    src/main/resources/application.properties
-    ...
-  frontend/  # React frontend
-    src/
-    public/
-    ...
+```bash
+cd config-server
+mvn spring-boot:run
 ```
 
+Config Server varsayılan olarak `http://localhost:8888` adresinde çalışacaktır.
+
+### 2. Backend
+
+Config server çalıştıktan sonra backend servisini başlatabilirsiniz.
+
+```bash
+cd backend
+# backend/src/main/resources/application.yml dosyasındaki
+# veritabanı ayarlarını kendi ortamınıza göre düzenleyin.
+mvn spring-boot:run
+```
+
+Backend servisi varsayılan olarak `http://localhost:8080` adresinde çalışacaktır.
+
+### 3. Frontend
+
+Son olarak arayüz uygulamasını çalıştırın.
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+Frontend uygulaması tarayıcınızda `http://localhost:3000` adresinde açılacaktır.
+
 ---
 
-## Katkı ve Lisans
+## API Endpointleri (Backend)
 
-Bu proje eğitim ve demo amaçlıdır. Katkıda bulunmak için fork'layıp pull request gönderebilirsiniz.
+- `POST /api/v1/auth/register`: Yeni kullanıcı kaydı.
+- `POST /api/v1/auth/login`: Kullanıcı girişi ve JWT token alma.
+- `GET /api/v3/students`: Tüm öğrencileri listeler.
+- `GET /api/v3/students/{id}`: Belirtilen ID'ye sahip öğrenciyi getirir.
+- `POST /api/v3/students`: Yeni öğrenci ekler.
+- `PUT /api/v3/students/{id}`: Öğrenci bilgilerini günceller.
+- `DELETE /api/v3/students/{id}`: Öğrenciyi siler.
+- `GET /api/v3/students/search?q={searchTerm}`: İsim, soyisim veya numaraya göre arama yapar.
 
 ---
 
-Herhangi bir sorunla karşılaşırsanız lütfen bir issue açın veya iletişime geçin.
+Bu proje, Spring Boot ve React ile modern, güvenli ve ölçeklenebilir web uygulamaları geliştirmek için bir başlangıç noktası sunmaktadır.

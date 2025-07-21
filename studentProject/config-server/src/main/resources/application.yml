@@ -1,0 +1,15 @@
+# Config Server uygulamasının ana yapılandırma dosyasıdır
+server:
+  # Config Server'ın çalışacağı port
+  port: 8888
+
+spring:
+  cloud:
+    config:
+      server:
+        native:
+          # Konfigürasyon dosyalarının aranacağı dizin
+          search-locations: file:///${user.home}/student-config-repo
+  profiles:
+    # Aktif profil olarak native kullanılır
+    active: native

@@ -1,4 +1,4 @@
-// Bu dosya, öğrenci ile ilgili HTTP isteklerini yöneten controller sınıfını tanımlar.
+
 package com.example.backend.controller;
 
 import com.example.backend.entities.Student;
@@ -16,9 +16,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-// Bu sınıf bir REST controller'dır
+/**
+ * Öğrenci işlemlerini yöneten REST controller.
+ * /api/v3/students: Listeleme, ekleme, güncelleme, silme, arama işlemleri
+ */
 @RestController
-// Tüm endpointler "/api/v3" ile başlar
 @RequestMapping("/api/v3")
 public class StudentController {
 
@@ -26,7 +28,9 @@ public class StudentController {
     @Autowired
     private StudentManager studentManager;
 
-    // Entity -> Response DTO dönüşümü
+    /**
+     * Entity'den Response DTO'ya dönüşüm yapan yardımcı metot
+     */
     private StudentResponse toResponse(Student student) {
         StudentResponse response = new StudentResponse();
         response.setId(student.getId());
@@ -36,13 +40,20 @@ public class StudentController {
         return response;
     }
 
-    // Tüm öğrencileri getirir (Response DTO ile)
+    /**
+     * Tüm öğrencileri getirir (GET /students)
+     * @return Öğrenci listesi
+     */
     @GetMapping("/students")
     public List<StudentResponse> getStudents() {
         return studentManager.findAll().stream().map(this::toResponse).collect(Collectors.toList());
     }
 
-    // ID'ye göre öğrenci getirir (Response DTO ile)
+    /**
+     * ID'ye göre öğrenci getirir (GET /students/{id})
+     * @param id Öğrenci ID
+     * @return Öğrenci veya 404
+     */
     @GetMapping("/students/{id}")
     public ResponseEntity<StudentResponse> getStudentById(@PathVariable int id) {
         try {
@@ -53,33 +64,22 @@ public class StudentController {
         }
     }
 
-    // Öğrenci adına göre arama (Response DTO ile)
-    @GetMapping("/students/search/name")
-    public ResponseEntity<List<StudentResponse>> searchStudentsByName(@RequestParam String name) {
-        List<StudentResponse> students = studentManager.searchByName(name)
-                .stream().map(this::toResponse).collect(Collectors.toList());
-        return ResponseEntity.ok(students);
-    }
-
-    // Öğrenci adı veya soyadına göre arama (Response DTO ile)
+    /**
+     * Öğrenci adı, soyadı veya numarasına göre arama yapar (GET /students/search?q=...)
+     */
     @GetMapping("/students/search")
-    public ResponseEntity<List<StudentResponse>> searchStudentsByNameOrSurname(@RequestParam String q) {
+    public ResponseEntity<List<StudentResponse>> searchStudents(@RequestParam String q) {
         String trimmed = q.trim();
-        List<StudentResponse> students = studentManager.searchByNameOrSurname(trimmed)
+        List<StudentResponse> students = studentManager.search(trimmed)
                 .stream().map(this::toResponse).collect(Collectors.toList());
         return ResponseEntity.ok(students);
     }
 
-    // Öğrenci numarasına göre arama (Response DTO ile)
-    @GetMapping("/students/search/number")
-    public ResponseEntity<List<StudentResponse>> searchStudentsByNumber(@RequestParam String number) {
-        String trimmed = number.trim();
-        List<StudentResponse> students = studentManager.searchByNumber(trimmed)
-                .stream().map(this::toResponse).collect(Collectors.toList());
-        return ResponseEntity.ok(students);
-    }
-
-    // Yeni öğrenci ekler (Request DTO ile)
+    /**
+     * Yeni öğrenci ekler (POST /students)
+     * @param request Yeni öğrenci bilgileri
+     * @return Eklenen öğrenci
+     */
     @PostMapping("/students")
     public StudentResponse addStudent(@RequestBody CreateStudentRequest request) {
         Student student = new Student();
@@ -90,7 +90,12 @@ public class StudentController {
         return toResponse(saved);
     }
 
-    // Öğrenci günceller (Request ve Response DTO ile)
+    /**
+     * Öğrenci günceller (PUT /students/{id})
+     * @param id Öğrenci ID
+     * @param request Güncellenecek bilgiler
+     * @return Güncellenen öğrenci veya 404
+     */
     @PutMapping("/students/{id}")
     public ResponseEntity<StudentResponse> updateStudent(@PathVariable Integer id, @RequestBody UpdateStudentRequest request) {
         try {
@@ -105,7 +110,11 @@ public class StudentController {
         }
     }
 
-    // Öğrenci siler
+    /**
+     * Öğrenci siler (DELETE /students/{id})
+     * @param id Öğrenci ID
+     * @return Silme sonucu
+     */
     @DeleteMapping("/students/{id}")
     public ResponseEntity<Map<String, Boolean>> deleteStudent(@PathVariable Integer id) {
         try {

@@ -68,3 +68,10 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+## Yeni Özellik: Admin Kullanıcı Ekleme
+
+- Sadece admin olarak giriş yapanlar, Navbar'da 'Kullanıcı Ekle' butonunu görebilir.
+- Bu butona tıklayınca açılan formda yeni kullanıcı için kullanıcı adı, şifre ve rol (ADMIN/USER) seçilebilir.
+- Kayıt işlemi başarılı olursa yeni kullanıcı veritabanına eklenir ve bu bilgilerle giriş yapılabilir.
+- Normal kullanıcılar bu butonu ve özelliği göremez.
