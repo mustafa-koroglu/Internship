@@ -1,0 +1,74 @@
+📚 Eklenen Dokümantasyon Dosyaları
+1. Ana README.md (Güncellendi)
+Proje genel bakışı ve mimarisi
+Kullanılan teknolojiler
+Sistem gereksinimleri
+Kurulum ve çalıştırma talimatları
+API dokümantasyonu
+Veritabanı şeması
+Güvenlik bilgileri
+CSV işleme
+Geliştirme rehberi
+Test ve dağıtım bilgileri
+2. docs/API_DOCUMENTATION.md
+Detaylı API endpoint'leri
+Request/Response örnekleri
+Hata kodları
+cURL, JavaScript ve Python örnekleri
+Kimlik doğrulama bilgileri
+Validation kuralları
+3. docs/DEPLOYMENT_GUIDE.md
+Docker ile dağıtım
+Cloud platformları (AWS, GCP, Azure)
+Production ortamı kurulumu
+Monitoring ve logging
+Backup ve recovery
+Güvenlik kontrolleri
+4. docs/DEVELOPMENT_GUIDE.md
+Geliştirme ortamı kurulumu
+Kod standartları (Java ve React)
+Git workflow
+Test yazma rehberi
+Code review süreci
+Performance optimizasyonu
+Security best practices
+Troubleshooting
+5. docs/CONTRIBUTING.md
+Katkıda bulunma süreci
+Branch stratejisi
+Commit message conventions
+Pull request süreci
+Issue raporlama
+Code review checklist
+6. docs/CHANGELOG.md
+Sürüm geçmişi
+Semantic versioning
+Değişiklik türleri
+Katkıda bulunma rehberi
+7. docs/README.md (Docs klasörü index'i)
+Dokümantasyon listesi
+Hızlı başlangıç rehberleri
+Dokümantasyon standartları
+Arama ve organizasyon
+�� Dokümantasyonun Özellikleri
+✅ Kapsamlı İçerik
+Teknik Detaylar: API, veritabanı, güvenlik
+Geliştirme Rehberleri: Kurulum, standartlar, best practices
+Operasyonel: Dağıtım, monitoring, backup
+Topluluk: Katkıda bulunma, issue raporlama
+✅ Kullanıcı Dostu
+Emoji Kullanımı: Bölümleri ayırmak için
+İçindekiler: Her dosyada navigasyon
+Kod Örnekleri: Pratik kullanım için
+Hızlı Başlangıç: Farklı kullanıcı tipleri için
+✅ Profesyonel Standartlar
+Markdown Formatı: GitHub uyumlu
+Semantic Versioning: Sürüm yönetimi
+Conventional Commits: Git standartları
+Code Review: Kalite kontrolü
+✅ Güncellenebilir
+Modüler Yapı: Her konu ayrı dosyada
+Template'ler: Yeni dokümantasyon için
+Changelog: Değişiklik takibi
+Katkı Rehberi: Topluluk katılımı
+Bu dokümantasyon, projenizin profesyonel bir şekilde sunulmasını sağlayacak ve yeni geliştiricilerin projeye katılmasını kolaylaştıracaktır. Ayrıca, production ortamında dağıtım ve bakım süreçlerini de destekleyecektir.

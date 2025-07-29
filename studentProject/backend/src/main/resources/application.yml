@@ -12,3 +12,8 @@ spring:
   config:
     # Harici konfigürasyon sunucusundan ayarları içe aktarır
     import: "configserver:"
+
+# CSV işleme konfigürasyonu
+csv:
+  watch:
+    directory: ../csv-files

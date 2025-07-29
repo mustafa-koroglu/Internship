@@ -52,6 +52,13 @@ public class SecurityConfig {
                 // Öğrenci listeleme ve arama endpointleri için ADMIN veya USER rolü gerekir
                 .requestMatchers("/api/v3/students").hasAnyRole("ADMIN", "USER")
                 .requestMatchers("/api/v3/students/search**").hasAnyRole("ADMIN", "USER")
+                // Yeni eklenen endpoint'ler - USER ve ADMIN erişebilir
+                .requestMatchers("/api/v3/students/verified").hasAnyRole("ADMIN", "USER")
+                .requestMatchers("/api/v3/students/verified/search**").hasAnyRole("ADMIN", "USER")
+                // Admin-only endpoint'ler
+                .requestMatchers("/api/v3/students/unverified").hasRole("ADMIN")
+                .requestMatchers("/api/v3/students/*/approve").hasRole("ADMIN")
+                .requestMatchers("/api/v3/students/*/visibility").hasRole("ADMIN")
                 // Öğrenci ekleme, silme, güncelleme için sadece ADMIN rolü gerekir
                 .requestMatchers("/api/v3/students/**").hasRole("ADMIN")
                 // Diğer tüm istekler için kimlik doğrulama gerekir
