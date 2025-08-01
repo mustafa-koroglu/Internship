@@ -1,25 +1,15 @@
-// Bu dosya, kaynak bulunamadığında fırlatılan özel istisna (exception) sınıfını tanımlar.
-package com.example.backend.exception;
+package com.example.backend.exception; // Exception paketi
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import java.io.Serial;
+import org.springframework.http.HttpStatus; // HTTP durum kodu
+import org.springframework.web.bind.annotation.ResponseStatus; // Yanıt durumu anotasyonu
+import java.io.Serial; // Serial anotasyonu
 
-/**
- * Kaynak bulunamadığında (ör: öğrenci, kullanıcı) fırlatılan özel exception.
- * Bu exception fırlatıldığında HTTP 404 (NOT_FOUND) döner.
- */
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class ResourceNotFoundException extends RuntimeException {
-    // Java'nın Serializable arayüzü için benzersiz kimlik
-    @Serial
-    private static final long serialVersionUID = 1L;
+@ResponseStatus(value = HttpStatus.NOT_FOUND) // HTTP 404 yanıt durumu
+public class ResourceNotFoundException extends RuntimeException { // Kaynak bulunamadı hatası
+    @Serial // Serial anotasyonu
+    private static final long serialVersionUID = 1L; // Serial versiyon ID'si
 
-    /**
-     * Hata mesajını ileten kurucu metod
-     * @param message Hata mesajı
-     */
-    public ResourceNotFoundException(String message) {
-        super(message);
+    public ResourceNotFoundException(String message) { // Kurucu metod
+        super(message); // Üst sınıf kurucusunu çağır
     }
 }

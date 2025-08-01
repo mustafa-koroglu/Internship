@@ -1,32 +1,26 @@
-package com.example.backend.scheduler;
+package com.example.backend.scheduler; // Scheduler paketi
 
-import com.example.backend.service.concretes.CsvProcessingService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import com.example.backend.service.concretes.CsvProcessingService; // CSV işleme servisi
+import lombok.RequiredArgsConstructor; // Constructor injection
+import lombok.extern.slf4j.Slf4j; // Logging
+import org.springframework.scheduling.annotation.Scheduled; // Zamanlanmış görev anotasyonu
+import org.springframework.stereotype.Component; // Component anotasyonu
 
-@Component
-@RequiredArgsConstructor
-@Slf4j
-public class CsvProcessingScheduler {
+@Component // Spring component anotasyonu
+@RequiredArgsConstructor // Constructor injection
+@Slf4j // Logging
+public class CsvProcessingScheduler { // CSV işleme zamanlayıcı sınıfı
 
-    private final CsvProcessingService csvProcessingService;
+    private final CsvProcessingService csvProcessingService; // CSV işleme servisi
 
-    /**
-     * Her 30 saniyede bir CSV dosyalarını işle (test için)
-     * cron formatı: saniye dakika saat gün ay hafta
-     * "0/30 * * * * *" = Her 30 saniyede bir
-     * Normalde: "0 0 * * * *" = Her saatin başında (00:00, 01:00, 02:00, ...)
-     */
-    @Scheduled(cron = "0/30 * * * * *")
-    public void processCsvFilesScheduled() {
-        log.info("Scheduled CSV işleme job'ı başlatılıyor...");
-        try {
-            csvProcessingService.processCsvFiles();
-            log.info("Scheduled CSV işleme job'ı tamamlandı.");
-        } catch (Exception e) {
-            log.error("Scheduled CSV işleme job'ında hata: {}", e.getMessage(), e);
+    @Scheduled(cron = "0/30 * * * * *") // Her 30 saniyede bir çalıştır
+    public void processCsvFilesScheduled() { // Zamanlanmış CSV işleme metodu
+        log.info("Scheduled CSV isleme job'i baslatiliyor..."); // Başlangıç log'u
+        try { // Hata yakalama bloğu
+            csvProcessingService.processCsvFiles(); // CSV dosyalarını işle
+            log.info("Scheduled CSV isleme job'i tamamlandi."); // Tamamlanma log'u
+        } catch (Exception e) { // Hata yakalama
+            log.error("Scheduled CSV isleme job'inda hata: {}", e.getMessage(), e); // Hata log'u
         }
     }
 } 

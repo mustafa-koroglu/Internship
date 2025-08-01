@@ -1,92 +1,60 @@
+package com.example.backend.controller; // Controller paketi
 
-package com.example.backend.controller;
+import com.example.backend.dataAccess.AppUserRepository; // Kullanıcı repository'si
+import com.example.backend.entities.AppUser; // Kullanıcı entity'si
+import com.example.backend.request.LoginRequest; // Giriş isteği
+import com.example.backend.request.RegisterRequest; // Kayıt isteği
+import com.example.backend.response.LoginResponse; // Giriş yanıtı
+import com.example.backend.utility.JwtUtil; // JWT utility
 
+import lombok.RequiredArgsConstructor; // Constructor injection
+import org.springframework.security.crypto.password.PasswordEncoder; // Şifre encoder'ı
+import org.springframework.web.bind.annotation.*; // Web controller anotasyonları
 
-import com.example.backend.dataAccess.AppUserRepository;
-import com.example.backend.entities.AppUser;
-import com.example.backend.request.LoginRequest;
-import com.example.backend.request.RegisterRequest;
-import com.example.backend.response.LoginResponse;
-import com.example.backend.utility.JwtUtil;
+@RestController // REST controller anotasyonu
+@RequestMapping("/auth") // Auth endpoint prefix'i
+@RequiredArgsConstructor // Constructor injection
+public class AuthController { // Kimlik doğrulama controller sınıfı
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+    private final AppUserRepository appUserRepository; // Kullanıcı repository'si
+    private final JwtUtil jwtUtil; // JWT utility
+    private final PasswordEncoder passwordEncoder; // Şifre encoder'ı
 
-/**
- * Kullanıcı kimlik doğrulama ve kullanıcı ekleme işlemlerini yöneten controller.
- * /auth/login: Giriş işlemi
- * /auth/register: Sadece adminlerin yeni kullanıcı eklemesi
- */
-@RestController
-@RequestMapping("/auth")
-public class AuthController {
+    @PostMapping("/login") // Giriş endpoint'i
+    public LoginResponse login(@RequestBody LoginRequest loginRequest) { // Giriş metodu
+        String username = loginRequest.getUsername(); // Kullanıcı adını al
+        String password = loginRequest.getPassword(); // Şifreyi al
 
-    // Kullanıcı veritabanı işlemleri için repository
-    @Autowired
-    private AppUserRepository appUserRepository;
+        AppUser user = appUserRepository.findByUsername(username) // Kullanıcıyı bul
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı")); // Kullanıcı yoksa hata fırlat
 
-    // JWT işlemleri için yardımcı sınıf
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    // Şifreleri hashlemek için encoder
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    /**
-     * Kullanıcı giriş işlemi (POST /auth/login)
-     * @param loginRequest Kullanıcı adı ve şifre
-     * @return JWT token, rol ve kullanıcı adı
-     */
-    @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest loginRequest) {
-        String username = loginRequest.getUsername();
-        String password = loginRequest.getPassword();
-
-        // Kullanıcıyı veritabanında bul
-        AppUser user = appUserRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
-
-        // Şifreyi kontrol et
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Şifre yanlış");
+        if (!passwordEncoder.matches(password, user.getPassword())) { // Şifreyi kontrol et
+            throw new RuntimeException("Şifre yanlış"); // Şifre yanlışsa hata fırlat
         }
 
-        // JWT token üret
-        String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole()); // JWT token üret
 
-        // Yanıtı hazırla
-        LoginResponse response = new LoginResponse();
-        response.setToken(token);
-        response.setRole(user.getRole());
-        response.setUsername(user.getUsername());
-        return response;
+        LoginResponse response = new LoginResponse(); // Yanıt nesnesi oluştur
+        response.setToken(token); // Token'ı ayarla
+        response.setRole(user.getRole()); // Rolü ayarla
+        response.setUsername(user.getUsername()); // Kullanıcı adını ayarla
+        return response; // Yanıtı döndür
     }
 
-    /**
-     * Sadece ADMIN'lerin kullanıcı ekleyebileceği endpoint (POST /auth/register)
-     * @param registerRequest Yeni kullanıcı bilgileri
-     * @param authHeader Admin'in JWT token'ı
-     * @return Başarı mesajı
-     */
-    @PostMapping("/register")
-    public String register(@RequestBody RegisterRequest registerRequest, @RequestHeader("Authorization") String authHeader) {
-        // Token'dan rolü çıkar
-        String token = authHeader != null && authHeader.startsWith("Bearer ") ? authHeader.substring(7) : null;
-        if (token == null) throw new RuntimeException("Yetkisiz erişim");
-        String role = jwtUtil.extractRole(token);
-        if (!"ADMIN".equals(role)) throw new RuntimeException("Sadece admin kullanıcı ekleyebilir");
-        // Kullanıcı adı benzersiz olmalı
-        if (appUserRepository.findByUsername(registerRequest.getUsername()).isPresent()) {
-            throw new RuntimeException("Kullanıcı adı zaten mevcut");
+    @PostMapping("/register") // Kayıt endpoint'i
+    public String register(@RequestBody RegisterRequest registerRequest, @RequestHeader("Authorization") String authHeader) { // Kayıt metodu
+        String token = authHeader != null && authHeader.startsWith("Bearer ") ? authHeader.substring(7) : null; // Token'ı çıkar
+        if (token == null) throw new RuntimeException("Yetkisiz erişim"); // Token yoksa hata fırlat
+        String role = jwtUtil.extractRole(token); // Token'dan rolü çıkar
+        if (!"ADMIN".equals(role)) throw new RuntimeException("Sadece admin kullanıcı ekleyebilir"); // Admin değilse hata fırlat
+        if (appUserRepository.findByUsername(registerRequest.getUsername()).isPresent()) { // Kullanıcı adı kontrolü
+            throw new RuntimeException("Kullanıcı adı zaten mevcut"); // Kullanıcı adı varsa hata fırlat
         }
-        // Yeni kullanıcıyı oluştur ve kaydet
-        AppUser user = new AppUser();
-        user.setUsername(registerRequest.getUsername());
-        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        user.setRole(registerRequest.getRole());
-        appUserRepository.save(user);
-        return "Kullanıcı başarıyla kaydedildi";
+        AppUser user = new AppUser(); // Yeni kullanıcı oluştur
+        user.setUsername(registerRequest.getUsername()); // Kullanıcı adını ayarla
+        user.setPassword(passwordEncoder.encode(registerRequest.getPassword())); // Şifreyi encode et ve ayarla
+        user.setRole(registerRequest.getRole()); // Rolü ayarla
+        appUserRepository.save(user); // Kullanıcıyı kaydet
+        return "Kullanıcı başarıyla kaydedildi"; // Başarı mesajı döndür
     }
 }

@@ -1,21 +1,16 @@
-package com.example.backend.request;
+package com.example.backend.request; // Request paketi
 
-/**
- * Kullanıcı kaydı için kullanılan veri transfer nesnesi (DTO).
- * Admin tarafından yeni kullanıcı eklerken kullanılır.
- */
-public class RegisterRequest {
-    /** Kullanıcı adı */
-    private String username;
-    /** Kullanıcı şifresi */
-    private String password;
-    /** Kullanıcı rolü (ADMIN veya USER) */
-    private String role;
+public class RegisterRequest { // Kayıt isteği DTO sınıfı
+    private String username; // Kullanıcı adı
 
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
+    private String password; // Kullanıcı şifresi
+
+    private String role; // Kullanıcı rolü
+
+    public String getUsername() { return username; } // Kullanıcı adı getter
+    public void setUsername(String username) { this.username = username; } // Kullanıcı adı setter
+    public String getPassword() { return password; } // Şifre getter
+    public void setPassword(String password) { this.password = password; } // Şifre setter
+    public String getRole() { return role; } // Rol getter
+    public void setRole(String role) { this.role = role; } // Rol setter
 }

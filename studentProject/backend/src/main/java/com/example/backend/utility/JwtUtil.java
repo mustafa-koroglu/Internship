@@ -1,90 +1,52 @@
-// Bu dosya, JWT token üretimi ve doğrulaması için yardımcı metotlar içerir.
-package com.example.backend.utility;
+package com.example.backend.utility; // Utility paketi
 
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.stereotype.Component;
-import java.security.Key;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import io.jsonwebtoken.*; // JWT anotasyonları
+import io.jsonwebtoken.security.Keys; // JWT anahtar sınıfı
+import org.springframework.stereotype.Component; // Component anotasyonu
+import java.security.Key; // Güvenlik anahtarı
+import java.util.Date; // Tarih sınıfı
+import java.util.HashMap; // Hash map
+import java.util.Map; // Map
 
-/**
- * JWT token üretimi ve doğrulaması için yardımcı metotlar içerir.
- * Kullanıcı adı ve rol ile token üretir, token'dan bilgi çıkarır ve doğrulama yapar.
- */
-@Component
-public class JwtUtil {
-    /** JWT imzalama anahtarı (en az 32 karakter olmalı) */
-    private final String SECRET_KEY = "mysecretkeymysecretkeymysecretkeymysecretkey";
-    /** Token geçerlilik süresi (10 saat) */
-    private final long EXPIRATION_TIME = 1000 * 60 * 60 * 10;
+@Component // Spring component anotasyonu
+public class JwtUtil { // JWT utility sınıfı
+    private final String SECRET_KEY = "mysecretkeymysecretkeymysecretkeymysecretkey"; // JWT imzalama anahtarı
+    private final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; // Token geçerlilik süresi (10 saat)
 
-    /**
-     * İmzalama anahtarını döndüren yardımcı metot
-     * @return Key nesnesi
-     */
-    private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+    private Key getSigningKey() { // İmzalama anahtarını döndürme metodu
+        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes()); // HMAC SHA anahtarı oluştur
     }
 
-    /**
-     * Kullanıcı adı ve rol ile JWT token üretir
-     * @param username Kullanıcı adı
-     * @param role Kullanıcı rolü
-     * @return JWT token
-     */
-    public String generateToken(String username, String role) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("role", role);
-        return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(username)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact();
+    public String generateToken(String username, String role) { // JWT token üretme metodu
+        Map<String, Object> claims = new HashMap<>(); // Claim'ler map'i oluştur
+        claims.put("role", role); // Rolü claim'e ekle
+        return Jwts.builder() // JWT builder başlat
+                .setClaims(claims) // Claim'leri ayarla
+                .setSubject(username) // Subject'i ayarla
+                .setIssuedAt(new Date(System.currentTimeMillis())) // Oluşturma tarihini ayarla
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // Bitiş tarihini ayarla
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256) // İmzala
+                .compact(); // Token'ı oluştur
     }
 
-    /**
-     * Token'dan kullanıcı adını (subject) çıkarır
-     * @param token JWT token
-     * @return Kullanıcı adı
-     */
-    public String extractUsername(String token) {
-        return Jwts.parserBuilder().setSigningKey(getSigningKey()).build()
-                .parseClaimsJws(token).getBody().getSubject();
+    public String extractUsername(String token) { // Token'dan kullanıcı adını çıkarma metodu
+        return Jwts.parserBuilder().setSigningKey(getSigningKey()).build() // JWT parser oluştur
+                .parseClaimsJws(token).getBody().getSubject(); // Subject'i al
     }
 
-    /**
-     * Token'dan rol bilgisini çıkarır
-     * @param token JWT token
-     * @return Kullanıcı rolü
-     */
-    public String extractRole(String token) {
-        return (String) Jwts.parserBuilder().setSigningKey(getSigningKey()).build()
-                .parseClaimsJws(token).getBody().get("role");
+    public String extractRole(String token) { // Token'dan rol bilgisini çıkarma metodu
+        return (String) Jwts.parserBuilder().setSigningKey(getSigningKey()).build() // JWT parser oluştur
+                .parseClaimsJws(token).getBody().get("role"); // Rolü al
     }
 
-    /**
-     * Token'ın geçerli olup olmadığını ve kullanıcı adıyla eşleşip eşleşmediğini kontrol eder
-     * @param token JWT token
-     * @param username Beklenen kullanıcı adı
-     * @return true: geçerli, false: geçersiz
-     */
-    public boolean validateToken(String token, String username) {
-        final String extractedUsername = extractUsername(token);
-        return (extractedUsername.equals(username) && !isTokenExpired(token));
+    public boolean validateToken(String token, String username) { // Token doğrulama metodu
+        final String extractedUsername = extractUsername(token); // Token'dan kullanıcı adını çıkar
+        return (extractedUsername.equals(username) && !isTokenExpired(token)); // Kullanıcı adı eşleşiyor mu ve süresi dolmamış mı kontrol et
     }
 
-    /**
-     * Token'ın süresinin dolup dolmadığını kontrol eder
-     * @param token JWT token
-     * @return true: süresi dolmuş, false: geçerli
-     */
-    private boolean isTokenExpired(String token) {
-        Date expiration = Jwts.parserBuilder().setSigningKey(getSigningKey()).build()
-                .parseClaimsJws(token).getBody().getExpiration();
-        return expiration.before(new Date());
+    private boolean isTokenExpired(String token) { // Token süresi kontrol metodu
+        Date expiration = Jwts.parserBuilder().setSigningKey(getSigningKey()).build() // JWT parser oluştur
+                .parseClaimsJws(token).getBody().getExpiration(); // Bitiş tarihini al
+        return expiration.before(new Date()); // Süresi dolmuş mu kontrol et
     }
 }

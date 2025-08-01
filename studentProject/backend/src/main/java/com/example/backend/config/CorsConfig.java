@@ -1,40 +1,24 @@
-// Bu dosya, uygulamanın CORS (Cross-Origin Resource Sharing) ayarlarını yapılandırır.
-package com.example.backend.config;
+package com.example.backend.config; // Config paketi
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import java.util.Arrays;
+import org.springframework.context.annotation.Bean; // Bean anotasyonu
+import org.springframework.context.annotation.Configuration; // Configuration anotasyonu
+import org.springframework.web.cors.CorsConfiguration; // CORS yapılandırması
+import org.springframework.web.cors.CorsConfigurationSource; // CORS yapılandırma kaynağı
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource; // URL tabanlı CORS yapılandırma kaynağı
+import java.util.Arrays; // Arrays sınıfı
 
-/**
- * Uygulamanın CORS (Cross-Origin Resource Sharing) ayarlarını yapılandıran konfigürasyon sınıfı.
- * Tüm origin'lere, header'lara ve HTTP metodlarına izin verir.
- */
-@Configuration
-public class CorsConfig {
+@Configuration // Spring configuration anotasyonu
+public class CorsConfig { // CORS yapılandırma sınıfı
 
-    /**
-     * CORS yapılandırmasını sağlayan bean metodu
-     * @return CorsConfigurationSource
-     */
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        // Yeni bir CORS yapılandırma nesnesi oluşturur
-        CorsConfiguration configuration = new CorsConfiguration();
-        // Tüm origin'lere izin verir
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
-        // İzin verilen HTTP metodlarını belirtir
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        // Tüm header'lara izin verir
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        // Kimlik bilgisi (cookie, authorization header vs.) iletilmesine izin verir
-        configuration.setAllowCredentials(true);
-        // CORS yapılandırmasını belirli path'lere uygular
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        // Yapılandırmayı döner
-        return source;
+    @Bean // Spring bean tanımı
+    public CorsConfigurationSource corsConfigurationSource() { // CORS yapılandırma kaynağı metodu
+        CorsConfiguration configuration = new CorsConfiguration(); // Yeni CORS yapılandırması oluştur
+        configuration.setAllowedOriginPatterns(Arrays.asList("*")); // Tüm origin'lere izin ver
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // İzin verilen HTTP metodlarını belirt
+        configuration.setAllowedHeaders(Arrays.asList("*")); // Tüm header'lara izin ver
+        configuration.setAllowCredentials(true); // Kimlik bilgisi iletilmesine izin ver
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource(); // URL tabanlı CORS kaynağı oluştur
+        source.registerCorsConfiguration("/**", configuration); // CORS yapılandırmasını tüm path'lere uygula
+        return source; // Yapılandırmayı döndür
     }
 }

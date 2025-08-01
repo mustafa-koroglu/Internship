@@ -8,6 +8,7 @@ Bu dokümantasyon, Öğrenci Yönetim Sistemi'nin REST API endpoint'lerini detay
 - [Kimlik Doğrulama](#kimlik-doğrulama)
 - [Öğrenci Yönetimi](#öğrenci-yönetimi)
 - [CSV İşleme](#csv-işleme)
+- [Dosya Yönetimi](#dosya-yönetimi)
 - [Hata Kodları](#hata-kodları)
 - [Örnekler](#örnekler)
 
@@ -596,6 +597,183 @@ def get_students(token):
     else:
         print(f"Get students error: {response.json()}")
         return None
+```
+
+## 📁 Dosya Yönetimi
+
+Bu bölüm, CSV dosyalarının işlenme kayıtlarını yönetmek için kullanılan endpoint'leri içerir.
+
+### GET /api/v3/files
+
+Tüm dosya kayıtlarını getirir (en son işlenenler önce).
+
+**Authorization:** ADMIN rolü gerekli
+
+**Response (200):**
+
+```json
+[
+  {
+    "id": 1,
+    "fileName": "students",
+    "fullFileName": "students.csv",
+    "status": "DONE",
+    "processedAt": "2024-01-01T10:30:00",
+    "studentCount": 25,
+    "description": "25 öğrenci başarıyla işlendi"
+  },
+  {
+    "id": 2,
+    "fileName": "invalid_file",
+    "fullFileName": "invalid_file.csv",
+    "status": "FAIL",
+    "processedAt": "2024-01-01T10:25:00",
+    "studentCount": 0,
+    "description": "Geçersiz header formatı"
+  }
+]
+```
+
+### GET /api/v3/files/{id}
+
+Belirli bir dosya kaydını getirir.
+
+**Authorization:** ADMIN rolü gerekli
+
+**Response (200):**
+
+```json
+{
+  "id": 1,
+  "fileName": "students",
+  "fullFileName": "students.csv",
+  "status": "DONE",
+  "processedAt": "2024-01-01T10:30:00",
+  "studentCount": 25,
+  "description": "25 öğrenci başarıyla işlendi"
+}
+```
+
+### GET /api/v3/files/status/{status}
+
+Belirli bir duruma sahip dosyaları getirir.
+
+**Authorization:** ADMIN rolü gerekli
+
+**Parameters:**
+
+- `status`: DONE veya FAIL
+
+**Response (200):**
+
+```json
+[
+  {
+    "id": 1,
+    "fileName": "students",
+    "fullFileName": "students.csv",
+    "status": "DONE",
+    "processedAt": "2024-01-01T10:30:00",
+    "studentCount": 25,
+    "description": "25 öğrenci başarıyla işlendi"
+  }
+]
+```
+
+### GET /api/v3/files/search
+
+Dosya adına göre arama yapar.
+
+**Authorization:** ADMIN rolü gerekli
+
+**Query Parameters:**
+
+- `fileName`: Dosya adı (kısmi eşleşme)
+
+**Response (200):**
+
+```json
+[
+  {
+    "id": 1,
+    "fileName": "students",
+    "fullFileName": "students.csv",
+    "status": "DONE",
+    "processedAt": "2024-01-01T10:30:00",
+    "studentCount": 25,
+    "description": "25 öğrenci başarıyla işlendi"
+  }
+]
+```
+
+### GET /api/v3/files/recent
+
+En son işlenen N dosyayı getirir.
+
+**Authorization:** ADMIN rolü gerekli
+
+**Query Parameters:**
+
+- `limit`: Limit sayısı (varsayılan: 10)
+
+**Response (200):**
+
+```json
+[
+  {
+    "id": 1,
+    "fileName": "students",
+    "fullFileName": "students.csv",
+    "status": "DONE",
+    "processedAt": "2024-01-01T10:30:00",
+    "studentCount": 25,
+    "description": "25 öğrenci başarıyla işlendi"
+  }
+]
+```
+
+### GET /api/v3/files/date-range
+
+Belirli bir tarih aralığında işlenen dosyaları getirir.
+
+**Authorization:** ADMIN rolü gerekli
+
+**Query Parameters:**
+
+- `startDate`: Başlangıç tarihi (yyyy-MM-dd HH:mm:ss)
+- `endDate`: Bitiş tarihi (yyyy-MM-dd HH:mm:ss)
+
+**Response (200):**
+
+```json
+[
+  {
+    "id": 1,
+    "fileName": "students",
+    "fullFileName": "students.csv",
+    "status": "DONE",
+    "processedAt": "2024-01-01T10:30:00",
+    "studentCount": 25,
+    "description": "25 öğrenci başarıyla işlendi"
+  }
+]
+```
+
+### GET /api/v3/files/stats
+
+Dosya işleme istatistiklerini getirir.
+
+**Authorization:** ADMIN rolü gerekli
+
+**Response (200):**
+
+```json
+{
+  "totalFiles": 10,
+  "doneFiles": 8,
+  "failFiles": 2,
+  "totalStudents": 200
+}
 ```
 
 ---

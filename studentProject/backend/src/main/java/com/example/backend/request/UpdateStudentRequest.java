@@ -1,30 +1,24 @@
-// Bu dosya, öğrenci güncelleme isteği için kullanılan DTO'yu tanımlar.
-package com.example.backend.request;
+package com.example.backend.request; // Request paketi
 
-/**
- * Öğrenci güncelleme isteği için kullanılan veri transfer nesnesi (DTO).
- * Öğrenci adı, soyadı, numarası, onay durumu ve görünürlük durumu ile güncelleme yapılır.
- */
-public class UpdateStudentRequest {
-    /** Öğrencinin adı */
-    private String name;
-    /** Öğrencinin soyadı */
-    private String surname;
-    /** Öğrencinin numarası */
-    private String number;
-    /** Öğrencinin onay durumu */
-    private Boolean verified;
-    /** Öğrencinin görünürlük durumu */
-    private Boolean view;
+public class UpdateStudentRequest { // Öğrenci güncelleme isteği DTO sınıfı
+    private String name; // Öğrenci adı
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getSurname() { return surname; }
-    public void setSurname(String surname) { this.surname = surname; }
-    public String getNumber() { return number; }
-    public void setNumber(String number) { this.number = number; }
-    public Boolean getVerified() { return verified; }
-    public void setVerified(Boolean verified) { this.verified = verified; }
-    public Boolean getView() { return view; }
-    public void setView(Boolean view) { this.view = view; }
+    private String surname; // Öğrenci soyadı
+
+    private String number; // Öğrenci numarası
+
+    private Boolean verified; // Onay durumu
+
+    private Boolean view; // Görünürlük durumu
+
+    public String getName() { return name; } // İsim getter
+    public void setName(String name) { this.name = name; } // İsim setter
+    public String getSurname() { return surname; } // Soyisim getter
+    public void setSurname(String surname) { this.surname = surname; } // Soyisim setter
+    public String getNumber() { return number; } // Numara getter
+    public void setNumber(String number) { this.number = number; } // Numara setter
+    public Boolean getVerified() { return verified; } // Onay durumu getter
+    public void setVerified(Boolean verified) { this.verified = verified; } // Onay durumu setter
+    public Boolean getView() { return view; } // Görünürlük durumu getter
+    public void setView(Boolean view) { this.view = view; } // Görünürlük durumu setter
 } 

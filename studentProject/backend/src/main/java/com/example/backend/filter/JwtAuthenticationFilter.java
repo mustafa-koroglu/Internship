@@ -1,70 +1,51 @@
-// Bu dosya, gelen HTTP isteklerinde JWT doğrulaması yapan filtreyi tanımlar.
-package com.example.backend.filter;
+package com.example.backend.filter; // Filter paketi
 
-import com.example.backend.service.concretes.AppUserDetailsService;
-import com.example.backend.utility.JwtUtil;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
-import java.io.IOException;
+import com.example.backend.service.concretes.AppUserDetailsService; // Kullanıcı detay servisi
+import com.example.backend.utility.JwtUtil; // JWT utility
+import jakarta.servlet.FilterChain; // Filtre zinciri
+import jakarta.servlet.ServletException; // Servlet hatası
+import jakarta.servlet.http.HttpServletRequest; // HTTP istek
+import jakarta.servlet.http.HttpServletResponse; // HTTP yanıt
+import org.springframework.beans.factory.annotation.Autowired; // Autowired anotasyonu
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken; // Kullanıcı adı şifre kimlik doğrulama token'ı
+import org.springframework.security.core.context.SecurityContextHolder; // Güvenlik bağlam tutucusu
+import org.springframework.security.core.userdetails.UserDetails; // Kullanıcı detayları
+import org.springframework.stereotype.Component; // Component anotasyonu
+import org.springframework.web.filter.OncePerRequestFilter; // Her istek için bir kez çalışan filtre
+import java.io.IOException; // IO hatası
 
-/**
- * Gelen HTTP isteklerinde JWT doğrulaması yapan filtre.
- * Her istekte Authorization header'ını kontrol eder, token geçerliyse kullanıcıyı güvenlik bağlamına ekler.
- */
-@Component
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+@Component // Spring component anotasyonu
+public class JwtAuthenticationFilter extends OncePerRequestFilter { // JWT kimlik doğrulama filtresi
 
-    /** JWT işlemleri için yardımcı sınıf */
-    @Autowired
-    private JwtUtil jwtUtil;
+    @Autowired // Bağımlılık enjeksiyonu
+    private JwtUtil jwtUtil; // JWT utility
 
-    /** Kullanıcı detaylarını yüklemek için servis */
-    @Autowired
-    private AppUserDetailsService userDetailsService;
+    @Autowired // Bağımlılık enjeksiyonu
+    private AppUserDetailsService userDetailsService; // Kullanıcı detay servisi
 
-    /**
-     * Her HTTP isteğinde çalışacak filtre metodu
-     * @param request HTTP isteği
-     * @param response HTTP yanıtı
-     * @param filterChain Filtre zinciri
-     */
-    @Override
-    @SuppressWarnings("null")
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    @Override // Override anotasyonu
+    @SuppressWarnings("null") // Null uyarısını bastır
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) // Filtre iç metodu
+            throws ServletException, IOException { // Servlet ve IO hatası
 
-        // Authorization başlığını alır
-        final String authHeader = request.getHeader("Authorization");
-        String username = null;
-        String jwt = null;
+        final String authHeader = request.getHeader("Authorization"); // Authorization başlığını al
+        String username = null; // Kullanıcı adı değişkeni
+        String jwt = null; // JWT değişkeni
 
-        // Authorization başlığı "Bearer " ile başlıyorsa JWT'yi çıkarır ve kullanıcı adını alır
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            jwt = authHeader.substring(7);
-            username = jwtUtil.extractUsername(jwt);
+        if (authHeader != null && authHeader.startsWith("Bearer ")) { // Authorization başlığı Bearer ile başlıyorsa
+            jwt = authHeader.substring(7); // JWT'yi çıkar
+            username = jwtUtil.extractUsername(jwt); // Kullanıcı adını çıkar
         }
 
-        // Kullanıcı adı varsa ve güvenlik bağlamında kimlik doğrulama yoksa devam eder
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            // Kullanıcı detaylarını yükler
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) { // Kullanıcı adı varsa ve güvenlik bağlamında kimlik doğrulama yoksa
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username); // Kullanıcı detaylarını yükle
 
-            // Token geçerliyse, kullanıcıyı güvenlik bağlamına ekler
-            if (jwtUtil.validateToken(jwt, userDetails.getUsername())) {
-                UsernamePasswordAuthenticationToken authToken =
+            if (jwtUtil.validateToken(jwt, userDetails.getUsername())) { // Token geçerliyse
+                UsernamePasswordAuthenticationToken authToken = // Kimlik doğrulama token'ı oluştur
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                SecurityContextHolder.getContext().setAuthentication(authToken); // Güvenlik bağlamına ekle
             }
         }
-        // Filtre zincirine devam eder
-        filterChain.doFilter(request, response);
+        filterChain.doFilter(request, response); // Filtre zincirine devam et
     }
 }

@@ -1,18 +1,12 @@
-// Bu dosya, kullanıcı giriş isteği için kullanılan DTO'yu tanımlar.
-package com.example.backend.request;
+package com.example.backend.request; // Request paketi
 
-/**
- * Kullanıcı giriş isteği için kullanılan veri transfer nesnesi (DTO).
- * Kullanıcı adı ve şifre ile giriş yapılır.
- */
-public class LoginRequest {
-    /** Kullanıcı adı */
-    private String username;
-    /** Kullanıcı şifresi */
-    private String password;
+public class LoginRequest { // Giriş isteği DTO sınıfı
+    private String username; // Kullanıcı adı
 
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    private String password; // Kullanıcı şifresi
+
+    public String getUsername() { return username; } // Kullanıcı adı getter
+    public void setUsername(String username) { this.username = username; } // Kullanıcı adı setter
+    public String getPassword() { return password; } // Şifre getter
+    public void setPassword(String password) { this.password = password; } // Şifre setter
 } 

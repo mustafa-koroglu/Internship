@@ -41,4 +41,26 @@ CREATE INDEX IF NOT EXISTS idx_students_verified_view ON students(verified, view
 -- Migration tamamlandı!
 -- Artık öğrenciler verified ve view alanlarına sahip.
 -- CSV'den okunan öğrenciler: verified=FALSE, view=FALSE
--- Manuel eklenen öğrenciler: verified=TRUE, view=TRUE 
+-- Manuel eklenen öğrenciler: verified=TRUE, view=TRUE
+
+-- 7. Files tablosu oluştur (CSV işleme kayıtları için)
+CREATE TABLE IF NOT EXISTS files (
+    id BIGSERIAL PRIMARY KEY,
+    file_name VARCHAR(255) NOT NULL,
+    full_file_name VARCHAR(255) NOT NULL,
+    status VARCHAR(10) NOT NULL CHECK (status IN ('DONE', 'FAIL')),
+    processed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    student_count INTEGER DEFAULT 0,
+    description TEXT
+);
+
+-- 8. Files tablosu için indeksler
+CREATE INDEX IF NOT EXISTS idx_files_status ON files(status);
+CREATE INDEX IF NOT EXISTS idx_files_processed_at ON files(processed_at);
+CREATE INDEX IF NOT EXISTS idx_files_file_name ON files(file_name);
+
+-- 9. Files tablosu rollback script (gerekirse geri almak için)
+-- DROP INDEX IF EXISTS idx_files_status;
+-- DROP INDEX IF EXISTS idx_files_processed_at;
+-- DROP INDEX IF EXISTS idx_files_file_name;
+-- DROP TABLE IF EXISTS files; 

@@ -1,24 +1,10 @@
-
 package com.example.backend.entities;
 
-import jakarta.persistence.*; // JPA için gerekli anotasyonlar
-import lombok.AllArgsConstructor; // Tüm alanlar için constructor oluşturur
-import lombok.Data; // Getter, setter, toString, equals, hashCode otomatik ekler
-import lombok.NoArgsConstructor; // Parametresiz constructor oluşturur
+import jakarta.persistence.*; // JPA anotasyonları
+import lombok.AllArgsConstructor; // Tüm alanlar için constructor
+import lombok.Data; // Getter, setter, toString, equals, hashCode
+import lombok.NoArgsConstructor; // Parametresiz constructor
 
-/**
- * Öğrenci entity sınıfı.
- * Veritabanındaki 'students' tablosunu temsil eder.
- * <p>
- * Öğrenci onay sistemi için eklenen alanlar:
- * - verified: Öğrencinin admin tarafından onaylanıp onaylanmadığını belirtir
- * - view: Öğrencinin kullanıcı arayüzünde görünür olup olmadığını belirtir
- * <p>
- * İş kuralları:
- * - CSV'den okunan öğrenciler: verified=false, view=false (onay bekler)
- * - Manuel eklenen öğrenciler: verified=true, view=true (otomatik onaylı)
- * - Sadece verified=true VE view=true olan öğrenciler kullanıcılara gösterilir
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -39,7 +25,6 @@ public class Student {
 
     @Column(name = "verified", nullable = false)
     private Boolean verified = false;
-
 
     @Column(name = "view", nullable = false)
     private Boolean view = false;

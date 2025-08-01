@@ -12,7 +12,17 @@
 - Her saat başı otomatik olarak çalışır
 - `../csv-files` klasöründeki `.csv` dosyalarını kontrol eder (ana proje dizininde)
 - CSV dosyalarından öğrenci kayıtlarını okur ve veritabanına kaydeder
-- İşlem tamamlandıktan sonra dosya ismini `.done.csv` olarak günceller
+- **Temiz Mimari**: 
+  - `CsvFileProcessor`: CSV dosya işleme mantığı
+  - `CsvProcessingService`: Dosya yönetimi ve thread yönetimi
+  - Tek sorumluluk prensibi uygulanmış
+- **Multithreading desteği**: Dosyalar sırayla işlenir (bir dosya bittiğinde diğeri başlar)
+  - CompletableFuture ile asenkron zincir oluşturulur
+  - Tek thread executor kullanılarak sıralı işleme sağlanır
+  - Her dosya için detaylı loglama yapılır
+  - Hata durumunda diğer dosyalar etkilenmez
+- İşlem tamamlandıktan sonra dosya ismini `.done` olarak günceller
+- Hata durumunda dosya ismini `.fail` olarak günceller
 
 ### CSV Dosya Formatı
 
