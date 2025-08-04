@@ -1,96 +1,53 @@
-// Öğrenci listesini ve işlemlerini yöneten ana bileşen.
+// Öğrenci listesi ve işlemlerini yöneten ana bileşen
 import React, { useEffect, useState } from "react";
+import AssignLessonModal from "./AssignLessonModal";
 
-/**
- * StudentList bileşeni, öğrenci listesini, arama, ekleme, silme ve güncelleme işlemlerini yönetir.
- * Admin ve user rolleri için farklı buton ve işlemler sunar.
- *
- * Öğrenci onay sistemi entegrasyonu:
- * - Admin: Tüm öğrencileri görür, onaylama ve görünürlük kontrolü yapabilir
- * - User: Sadece onaylanmış ve görünür öğrencileri görür
- * - Farklı endpoint'ler kullanır (admin: /students, user: /students/verified)
- * - Onaylama butonu (✓): Onaysız öğrencileri onaylar
- * - Görünürlük butonu (👁️): Öğrencileri gizler/gösterir
- *
- * İş kuralları:
- * - Admin tüm öğrencileri görür ve yönetebilir
- * - User sadece verified=true VE view=true olan öğrencileri görür
- * - Manuel eklenen öğrenciler otomatik onaylanır
- * - CSV'den okunan öğrenciler admin onayı bekler
- *
- * @param {string} role - Kullanıcı rolü (ADMIN/USER)
- */
 function StudentList({ role }) {
-  // Öğrenci listesini tutan state
   const [students, setStudents] = useState([]);
-  // Hata mesajını tutan state
   const [error, setError] = useState("");
-  // Ekleme formunun gösterilip gösterilmeyeceğini tutan state
   const [showAddForm, setShowAddForm] = useState(false);
-  // Yeni öğrenci ekleme formu için state
   const [newStudent, setNewStudent] = useState({
     name: "",
     surname: "",
     number: "",
   });
-  // Düzenlenen öğrencinin id'sini tutan state
-  const [editId, setEditId] = useState(null);
-  // Düzenleme formu için öğrenci bilgilerini tutan state
-  const [editStudent, setEditStudent] = useState({
+  const [search, setSearch] = useState("");
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [expandedStudents, setExpandedStudents] = useState(new Set());
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [editForm, setEditForm] = useState({
     name: "",
     surname: "",
     number: "",
-    verified: false, // Öğrenci onay sistemi alanı
-    view: false, // Öğrenci görünürlük alanı
+    verified: false,
+    view: false,
   });
-  // Arama kutusundaki değeri tutan state
-  const [search, setSearch] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
 
-  // JWT token'ı localStorage'dan alır
   const token = localStorage.getItem("token");
-  // Kullanıcının admin olup olmadığını kontrol eder
   const isAdmin = role === "ADMIN";
 
-  /**
-   * Hata mesajını ekranda 3 saniye gösterip otomatik siler
-   * @param {string} msg - Hata mesajı
-   */
+  // Hata mesajını göster
   function showError(msg) {
     setError(msg);
     setTimeout(() => setError(""), 3000);
   }
 
-  /**
-   * Başarı mesajını ekranda 3 saniye gösterip otomatik siler
-   * @param {string} msg - Başarı mesajı
-   */
+  // Başarı mesajını göster
   function showSuccess(msg) {
-    setError(""); // Hata mesajını temizle
+    setError("");
     setTimeout(() => {
       setError(msg);
       setTimeout(() => setError(""), 3000);
     }, 100);
   }
 
-  /**
-   * Öğrenci listesini API'den çeker
-   *
-   * Bu metod, kullanıcı rolüne göre farklı endpoint'ler kullanır:
-   * - Admin: /students (tüm öğrenciler)
-   * - User: /students/verified (sadece onaylanmış ve görünür öğrenciler)
-   *
-   * Öğrenci onay sistemi:
-   * - Admin tüm öğrencileri görür (onaylı/onaysız, görünür/gizli)
-   * - User sadece verified=true VE view=true olan öğrencileri görür
-   */
+  // Öğrenci listesini çek
   function fetchStudents() {
-    // Admin tüm öğrencileri, user sadece onaylanmış ve görünür öğrencileri görür
     const endpoint = isAdmin ? "/students" : "/students/verified";
     const url = `http://localhost:8080/api/v3${endpoint}`;
-
-    console.log("Fetching URL:", url);
-    console.log("Token:", token);
-    console.log("Is Admin:", isAdmin);
 
     fetch(url, {
       headers: {
@@ -110,24 +67,13 @@ function StudentList({ role }) {
       .catch((err) => showError(err.message));
   }
 
-  /**
-   * Arama işlemini gerçekleştirir
-   *
-   * Bu metod, kullanıcı rolüne göre farklı arama endpoint'leri kullanır:
-   * - Admin: /students/search (tüm öğrencilerde arama)
-   * - User: /students/verified/search (sadece onaylanmış öğrencilerde arama)
-   *
-   * Öğrenci onay sistemi:
-   * - Admin tüm öğrencilerde arama yapabilir
-   * - User sadece onaylanmış ve görünür öğrencilerde arama yapabilir
-   */
+  // Arama işlemi
   function handleSearch() {
     if (!search.trim()) {
       fetchStudents();
       return;
     }
 
-    // Admin tüm öğrencilerde, user sadece onaylanmış öğrencilerde arama yapar
     const endpoint = isAdmin ? "/students/search" : "/students/verified/search";
 
     fetch(
@@ -151,19 +97,7 @@ function StudentList({ role }) {
       .catch((err) => showError(err.message));
   }
 
-  /**
-   * Öğrenci onaylama işlemini yönetir (sadece admin)
-   *
-   * Bu metod, admin tarafından öğrenci onaylama işlemini gerçekleştirir.
-   * Onaylanan öğrenci artık kullanıcılara gösterilebilir hale gelir.
-   *
-   * İş kuralları:
-   * - Sadece admin kullanabilir
-   * - verified = true yapılır
-   * - view durumu değişmez (admin manuel olarak ayarlayabilir)
-   *
-   * @param {number} id - Onaylanacak öğrenci id'si
-   */
+  // Öğrenci onayla
   function handleApprove(id) {
     fetch(`http://localhost:8080/api/v3/students/${id}/approve`, {
       method: "PUT",
@@ -178,32 +112,17 @@ function StudentList({ role }) {
         }
         return res.json();
       })
-      .then((data) => {
-        setStudents((prev) => prev.map((s) => (s.id === id ? data : s)));
+      .then(() => {
         showSuccess("Öğrenci başarıyla onaylandı!");
+        fetchStudents();
       })
       .catch((err) => showError(err.message));
   }
 
-  /**
-   * Öğrenci görünürlük durumunu değiştirir (sadece admin)
-   *
-   * Bu metod, admin tarafından öğrencinin kullanıcılara gösterilip
-   * gösterilmeyeceğini kontrol etmek için kullanılır.
-   *
-   * İş kuralları:
-   * - Sadece admin kullanabilir
-   * - view = true/false yapılır
-   * - verified durumu değişmez
-   *
-   * @param {number} id - Öğrenci id'si
-   * @param {boolean} currentView - Mevcut görünürlük durumu
-   */
+  // Görünürlük kontrolü
   function handleToggleVisibility(id, currentView) {
-    const newView = !currentView;
-
     fetch(
-      `http://localhost:8080/api/v3/students/${id}/visibility?view=${newView}`,
+      `http://localhost:8080/api/v3/students/${id}/visibility?view=${(!currentView).toString()}`,
       {
         method: "PUT",
         headers: {
@@ -218,28 +137,14 @@ function StudentList({ role }) {
         }
         return res.json();
       })
-      .then((data) => {
-        setStudents((prev) => prev.map((s) => (s.id === id ? data : s)));
-        showSuccess(
-          `Öğrenci ${newView ? "görünür" : "gizli"} olarak ayarlandı!`
-        );
+      .then(() => {
+        showSuccess("Görünürlük başarıyla değiştirildi!");
+        fetchStudents();
       })
       .catch((err) => showError(err.message));
   }
 
-  /**
-   * Yeni öğrenci ekleme işlemini yönetir
-   *
-   * Bu metod, admin tarafından yeni öğrenci ekleme işlemini gerçekleştirir.
-   * Manuel eklenen öğrenciler otomatik olarak onaylanır ve görünür olur.
-   *
-   * İş kuralları:
-   * - Sadece admin kullanabilir
-   * - Manuel eklenen öğrenciler: verified=true, view=true
-   * - CSV'den okunan öğrenciler bu endpoint kullanılmaz
-   *
-   * @param {Event} e - Form submit event'i
-   */
+  // Yeni öğrenci ekle
   function handleAddSubmit(e) {
     e.preventDefault();
     fetch("http://localhost:8080/api/v3/students", {
@@ -257,37 +162,53 @@ function StudentList({ role }) {
         }
         return res.json();
       })
-      .then((data) => {
-        setStudents((prev) => [...prev, data]);
-        setShowAddForm(false);
-        setNewStudent({ name: "", surname: "", number: "" });
+      .then(() => {
         showSuccess("Öğrenci başarıyla eklendi!");
+        setNewStudent({ name: "", surname: "", number: "" });
+        setShowAddForm(false);
+        fetchStudents();
       })
       .catch((err) => showError(err.message));
   }
 
-  /**
-   * Öğrenci güncelleme işlemini yönetir
-   *
-   * Bu metod, admin tarafından öğrenci güncelleme işlemini gerçekleştirir.
-   * Öğrencinin tüm alanları (onay durumu dahil) güncellenebilir.
-   *
-   * Güncellenebilir alanlar:
-   * - name, surname, number: Temel bilgiler
-   * - verified, view: Onay ve görünürlük durumu
-   *
-   * @param {Event} e - Form submit event'i
-   * @param {number} id - Güncellenecek öğrenci id'si
-   */
-  function handleEditSubmit(e, id) {
+  // Öğrenci düzenle
+  function handleEditStudent(student) {
+    setEditingStudent(student);
+    setEditForm({
+      name: student.name,
+      surname: student.surname,
+      number: student.number,
+      verified: student.verified,
+      view: student.view,
+    });
+    setIsEditing(false);
+  }
+
+  // Edit panelini kapat
+  function handleCloseEdit() {
+    setEditingStudent(null);
+    setEditForm({
+      name: "",
+      surname: "",
+      number: "",
+      verified: false,
+      view: false,
+    });
+    setIsEditing(false);
+  }
+
+  // Edit formunu güncelle
+  function handleEditUpdate(e) {
     e.preventDefault();
-    fetch(`http://localhost:8080/api/v3/students/${id}`, {
+    setEditLoading(true);
+
+    fetch(`http://localhost:8080/api/v3/students/${editingStudent.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(editStudent),
+      body: JSON.stringify(editForm),
     })
       .then(async (res) => {
         if (!res.ok) {
@@ -296,62 +217,109 @@ function StudentList({ role }) {
         }
         return res.json();
       })
-      .then((data) => {
-        setStudents((prev) => prev.map((s) => (s.id === id ? data : s)));
-        setEditId(null);
-        showSuccess("Öğrenci başarıyla güncellendi!");
-      })
-      .catch((err) => showError(err.message));
-  }
-
-  /**
-   * Öğrenci silme işlemini yönetir
-   *
-   * Bu metod, admin tarafından öğrenci silme işlemini gerçekleştirir.
-   * Silme işlemi öncesi kullanıcıdan onay alınır.
-   *
-   * İş kuralları:
-   * - Sadece admin kullanabilir
-   * - Silme işlemi geri alınamaz
-   * - Kullanıcı onayı gerekli
-   *
-   * @param {number} id - Silinecek öğrenci id'si
-   */
-  function handleDelete(id) {
-    if (!window.confirm("Bu öğrenciyi silmek istediğinizden emin misiniz?")) {
-      return;
-    }
-
-    fetch(`http://localhost:8080/api/v3/students/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.message || "Silme başarısız!");
-        }
-        return res.json();
-      })
       .then(() => {
-        setStudents((prev) => prev.filter((s) => s.id !== id));
-        showSuccess("Öğrenci başarıyla silindi!");
+        showSuccess("Öğrenci başarıyla güncellendi!");
+        setIsEditing(false);
+        fetchStudents();
       })
-      .catch((err) => showError(err.message));
+      .catch((err) => showError(err.message))
+      .finally(() => {
+        setEditLoading(false);
+      });
   }
 
-  // Component mount olduğunda öğrenci listesini çeker
+  // Öğrenci sil
+  function handleDelete(id) {
+    if (window.confirm("Bu öğrenciyi silmek istediğinizden emin misiniz?")) {
+      fetch(`http://localhost:8080/api/v3/students/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.message || "Silme başarısız!");
+          }
+        })
+        .then(() => {
+          showSuccess("Öğrenci başarıyla silindi!");
+          fetchStudents();
+        })
+        .catch((err) => showError(err.message));
+    }
+  }
+
+  // Ders atama modalını aç
+  function handleAssignLessons(student) {
+    setSelectedStudent(student);
+    setShowAssignModal(true);
+  }
+
+  // Ders atama modalını kapat
+  function handleCloseAssignModal() {
+    setShowAssignModal(false);
+    setSelectedStudent(null);
+  }
+
+  // Ders atama başarılı olduğunda
+  function handleAssignSuccess() {
+    if (selectedStudent) {
+      const fetchUpdatedStudent = async () => {
+        try {
+          const response = await fetch(
+            `http://localhost:8080/api/v3/students/${selectedStudent.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (response.ok) {
+            const updatedStudent = await response.json();
+
+            setStudents((prevStudents) =>
+              prevStudents.map((student) =>
+                student.id === updatedStudent.id ? updatedStudent : student
+              )
+            );
+
+            if (editingStudent && editingStudent.id === selectedStudent.id) {
+              setEditingStudent(updatedStudent);
+            }
+          }
+        } catch (err) {
+          console.error("Öğrenci bilgileri yenilenemedi:", err);
+        }
+      };
+
+      fetchUpdatedStudent();
+    }
+  }
+
+  // Öğrenci derslerini genişlet/daralt
+  function toggleStudentExpansion(studentId) {
+    setExpandedStudents((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(studentId)) {
+        newSet.delete(studentId);
+      } else {
+        newSet.add(studentId);
+      }
+      return newSet;
+    });
+  }
+
   useEffect(() => {
     fetchStudents();
   }, [isAdmin]);
 
-  // Arama değiştiğinde otomatik arama yapar (debounce ile)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       handleSearch();
-    }, 300); // 300ms gecikme ile arama yapar
+    }, 300);
 
     return () => clearTimeout(timeoutId);
   }, [search]);
@@ -360,7 +328,6 @@ function StudentList({ role }) {
     <div className="container mt-4">
       <h2 className="mb-4">Öğrenci Listesi</h2>
 
-      {/* Hata/Başarı mesajı */}
       {error && (
         <div
           className={`alert ${
@@ -377,10 +344,8 @@ function StudentList({ role }) {
         </div>
       )}
 
-      {/* Arama ve ekleme butonları */}
       <div className="row mb-3">
         <div className="col-md-6">
-          {/* Arama kutusu - otomatik arama yapar */}
           <input
             type="text"
             className="form-control"
@@ -390,19 +355,17 @@ function StudentList({ role }) {
           />
         </div>
         <div className="col-md-6 text-end">
-          {/* Yeni öğrenci ekleme butonu - sadece admin */}
           {isAdmin && (
             <button
               className="btn btn-primary"
               onClick={() => setShowAddForm(!showAddForm)}
             >
-              {showAddForm ? "İptal" : "Yeni Öğrenci Ekle"}
+              Yeni Öğrenci Ekle
             </button>
           )}
         </div>
       </div>
 
-      {/* Yeni öğrenci ekleme formu - sadece admin */}
       {isAdmin && showAddForm && (
         <form className="mb-3" onSubmit={handleAddSubmit}>
           <div className="row g-2">
@@ -440,143 +403,272 @@ function StudentList({ role }) {
               />
             </div>
             <div className="col-auto">
-              <button className="btn btn-success" type="submit">
-                Save
-              </button>
-              <button
-                className="btn btn-secondary ms-2"
-                type="button"
-                onClick={() => setShowAddForm(false)}
-              >
-                Cancel
+              <button type="submit" className="btn btn-success">
+                Ekle
               </button>
             </div>
           </div>
         </form>
       )}
 
-      {/* Öğrenci tablosu */}
-      <table className="table table-bordered table-striped">
-        <thead>
-          <tr>
-            <th className="bg-dark text-white">Name</th>
-            <th className="bg-dark text-white">Surname</th>
-            <th className="bg-dark text-white">Number</th>
-            {/* Admin için ek sütunlar - onay durumu ve görünürlük */}
-            {isAdmin && (
-              <>
-                <th className="bg-dark text-white text-center">Verified</th>
-                <th className="bg-dark text-white text-center">View</th>
-                <th
-                  className="bg-dark text-white text-center"
-                  style={{ width: "200px" }}
-                >
-                  Actions
+      {editingStudent && (
+        <div className="card mb-4 border-primary">
+          <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 className="mb-0">
+              📝 {editingStudent.name} {editingStudent.surname} - Öğrenci
+              Düzenle
+            </h5>
+            <button
+              type="button"
+              className="btn-close btn-close-white"
+              onClick={handleCloseEdit}
+            ></button>
+          </div>
+          <div className="card-body">
+            <div className="row">
+              <div className="col-md-6">
+                <div className="card">
+                  <div className="card-header d-flex justify-content-between align-items-center">
+                    <h6 className="mb-0">📝 Öğrenci Bilgileri</h6>
+                    <button
+                      className={`btn btn-sm ${
+                        isEditing ? "btn-secondary" : "btn-primary"
+                      }`}
+                      onClick={() => setIsEditing(!isEditing)}
+                      disabled={editLoading}
+                    >
+                      {isEditing ? "İptal" : "Düzenle"}
+                    </button>
+                  </div>
+                  <div className="card-body">
+                    {isEditing ? (
+                      <form onSubmit={handleEditUpdate}>
+                        <div className="mb-3">
+                          <label className="form-label">Ad</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={editForm.name}
+                            onChange={(e) =>
+                              setEditForm({ ...editForm, name: e.target.value })
+                            }
+                            required
+                          />
+                        </div>
+                        <div className="mb-3">
+                          <label className="form-label">Soyad</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={editForm.surname}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                surname: e.target.value,
+                              })
+                            }
+                            required
+                          />
+                        </div>
+                        <div className="mb-3">
+                          <label className="form-label">Öğrenci Numarası</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={editForm.number}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                number: e.target.value,
+                              })
+                            }
+                            required
+                          />
+                        </div>
+                        <div className="mb-3">
+                          <div className="form-check">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              id="verified"
+                              checked={editForm.verified}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  verified: e.target.checked,
+                                })
+                              }
+                            />
+                            <label
+                              className="form-check-label"
+                              htmlFor="verified"
+                            >
+                              Onaylı
+                            </label>
+                          </div>
+                        </div>
+                        <div className="mb-3">
+                          <div className="form-check">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              id="view"
+                              checked={editForm.view}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  view: e.target.checked,
+                                })
+                              }
+                            />
+                            <label className="form-check-label" htmlFor="view">
+                              Görünür
+                            </label>
+                          </div>
+                        </div>
+                        <button
+                          type="submit"
+                          className="btn btn-success"
+                          disabled={editLoading}
+                        >
+                          {editLoading ? (
+                            <>
+                              <span
+                                className="spinner-border spinner-border-sm me-2"
+                                role="status"
+                              />
+                              Kaydediliyor...
+                            </>
+                          ) : (
+                            "Kaydet"
+                          )}
+                        </button>
+                      </form>
+                    ) : (
+                      <div>
+                        <div className="mb-3">
+                          <strong>Ad:</strong> {editingStudent.name}
+                        </div>
+                        <div className="mb-3">
+                          <strong>Soyad:</strong> {editingStudent.surname}
+                        </div>
+                        <div className="mb-3">
+                          <strong>Öğrenci Numarası:</strong>{" "}
+                          {editingStudent.number}
+                        </div>
+                        <div className="mb-3">
+                          <strong>Onay Durumu:</strong>{" "}
+                          <span
+                            className={`badge ${
+                              editingStudent.verified
+                                ? "bg-success"
+                                : "bg-warning"
+                            }`}
+                          >
+                            {editingStudent.verified ? "Onaylı" : "Onaysız"}
+                          </span>
+                        </div>
+                        <div className="mb-3">
+                          <strong>Görünürlük:</strong>{" "}
+                          <span
+                            className={`badge ${
+                              editingStudent.view
+                                ? "bg-success"
+                                : "bg-secondary"
+                            }`}
+                          >
+                            {editingStudent.view ? "Görünür" : "Gizli"}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-md-6">
+                <div className="card">
+                  <div className="card-header">
+                    <h6 className="mb-0">📚 Ders Yönetimi</h6>
+                  </div>
+                  <div className="card-body">
+                    <div className="mb-3">
+                      <button
+                        className="btn btn-primary w-100"
+                        onClick={() => handleAssignLessons(editingStudent)}
+                        disabled={editLoading}
+                      >
+                        📚 Ders Ata/Düzenle
+                      </button>
+                    </div>
+
+                    <div>
+                      <h6>Mevcut Dersler:</h6>
+                      {editingStudent.lessons &&
+                      editingStudent.lessons.length > 0 ? (
+                        <div className="row">
+                          {editingStudent.lessons.map((lesson) => (
+                            <div key={lesson.id} className="col-12 mb-2">
+                              <div className="card border-success">
+                                <div className="card-body p-2">
+                                  <h6 className="card-title mb-1">
+                                    {lesson.name}
+                                  </h6>
+                                  {lesson.description && (
+                                    <p className="card-text small mb-1">
+                                      {lesson.description}
+                                    </p>
+                                  )}
+                                  <small className="text-muted">
+                                    📅 {lesson.academicYear} - {lesson.term}
+                                  </small>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center text-muted py-3">
+                          <p>Henüz ders atanmamış.</p>
+                          <p>Ders atamak için yukarıdaki butona tıklayın.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="table-responsive">
+        <table className="table table-striped table-hover">
+          <thead className="table-dark">
+            <tr>
+              <th>Ad</th>
+              <th>Soyad</th>
+              <th>Numara</th>
+              {isAdmin && <th>Doğrulandı</th>}
+              {isAdmin && <th>Görünüm</th>}
+              <th>Dersler</th>
+              {isAdmin && (
+                <th style={{ width: "240px", whiteSpace: "nowrap" }}>
+                  Eylemler
                 </th>
-              </>
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {/* Öğrenci satırlarını render eder */}
-          {students.map((student) => (
-            <tr key={student.id}>
-              {/* Eğer düzenleme modundaysa inputlar gösterilir */}
-              {editId === student.id ? (
-                <>
-                  <td>
-                    <input
-                      className="form-control"
-                      value={editStudent.name}
-                      onChange={(e) =>
-                        setEditStudent({ ...editStudent, name: e.target.value })
-                      }
-                    />
-                  </td>
-                  <td>
-                    <input
-                      className="form-control"
-                      value={editStudent.surname}
-                      onChange={(e) =>
-                        setEditStudent({
-                          ...editStudent,
-                          surname: e.target.value,
-                        })
-                      }
-                    />
-                  </td>
-                  <td>
-                    <input
-                      className="form-control"
-                      value={editStudent.number}
-                      onChange={(e) =>
-                        setEditStudent({
-                          ...editStudent,
-                          number: e.target.value,
-                        })
-                      }
-                    />
-                  </td>
-                  {/* Admin için düzenleme formunda onay durumu kontrolü */}
-                  {isAdmin && (
-                    <>
-                      <td className="text-center">
-                        <input
-                          type="checkbox"
-                          className="form-check-input"
-                          checked={editStudent.verified}
-                          onChange={(e) =>
-                            setEditStudent({
-                              ...editStudent,
-                              verified: e.target.checked,
-                            })
-                          }
-                        />
-                      </td>
-                      <td className="text-center">
-                        <input
-                          type="checkbox"
-                          className="form-check-input"
-                          checked={editStudent.view}
-                          onChange={(e) =>
-                            setEditStudent({
-                              ...editStudent,
-                              view: e.target.checked,
-                            })
-                          }
-                        />
-                      </td>
-                    </>
-                  )}
-                  <td
-                    className="text-center"
-                    style={{ width: "200px", whiteSpace: "nowrap" }}
-                  >
-                    <button
-                      className="btn btn-success btn-sm me-2"
-                      onClick={(e) => handleEditSubmit(e, student.id)}
-                    >
-                      Save
-                    </button>
-                    <button
-                      className="btn btn-secondary btn-sm"
-                      onClick={() => setEditId(null)}
-                    >
-                      Cancel
-                    </button>
-                  </td>
-                </>
-              ) : (
-                <>
-                  {/* Normal modda öğrenci bilgileri gösterilir */}
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {students.map((student) => (
+              <React.Fragment key={student.id}>
+                <tr>
                   <td>{student.name}</td>
                   <td>{student.surname}</td>
                   <td>{student.number}</td>
-                  {/* Admin için onay durumu ve işlem butonları */}
                   {isAdmin && (
                     <>
-                      {/* Onay durumu gösterimi */}
-                      <td className="text-center">
+                      <td>
                         <span
                           className={`badge ${
                             student.verified ? "bg-success" : "bg-warning"
@@ -585,8 +677,7 @@ function StudentList({ role }) {
                           {student.verified ? "Onaylı" : "Onaysız"}
                         </span>
                       </td>
-                      {/* Görünürlük durumu gösterimi */}
-                      <td className="text-center">
+                      <td>
                         <span
                           className={`badge ${
                             student.view ? "bg-success" : "bg-secondary"
@@ -595,71 +686,119 @@ function StudentList({ role }) {
                           {student.view ? "Görünür" : "Gizli"}
                         </span>
                       </td>
-                      {/* İşlem butonları */}
-                      <td
-                        className="text-center"
-                        style={{ width: "200px", whiteSpace: "nowrap" }}
-                      >
-                        {/* Düzenleme butonu */}
-                        <button
-                          className="btn btn-primary btn-sm me-1"
-                          onClick={() => {
-                            setEditId(student.id);
-                            setEditStudent({
-                              name: student.name,
-                              surname: student.surname,
-                              number: student.number,
-                              verified: student.verified,
-                              view: student.view,
-                            });
-                          }}
-                        >
-                          Edit
-                        </button>
-                        {/* Onaylama butonu - sadece onaysız öğrenciler için */}
-                        {!student.verified && (
-                          <button
-                            className="btn btn-success btn-sm me-1"
-                            onClick={() => handleApprove(student.id)}
-                            title="Onayla"
-                          >
-                            ✓
-                          </button>
-                        )}
-                        {/* Görünürlük kontrol butonu */}
-                        <button
-                          className={`btn btn-sm me-1 ${
-                            student.view ? "btn-warning" : "btn-info"
-                          }`}
-                          onClick={() =>
-                            handleToggleVisibility(student.id, student.view)
-                          }
-                          title={student.view ? "Gizle" : "Göster"}
-                        >
-                          {student.view ? "👁️" : "👁️‍🗨️"}
-                        </button>
-                        {/* Silme butonu */}
-                        <button
-                          className="btn btn-danger btn-sm"
-                          onClick={() => handleDelete(student.id)}
-                        >
-                          Delete
-                        </button>
-                      </td>
                     </>
                   )}
-                </>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                  <td>
+                    {student.lessons && student.lessons.length > 0 ? (
+                      <button
+                        className="btn btn-info btn-sm"
+                        onClick={() => toggleStudentExpansion(student.id)}
+                        title={`${student.lessons.length} ders göster/gizle`}
+                      >
+                        📚 ({student.lessons.length})
+                      </button>
+                    ) : (
+                      <span className="text-muted">Ders yok</span>
+                    )}
+                  </td>
+                  {isAdmin && (
+                    <td style={{ width: "240px", whiteSpace: "nowrap" }}>
+                      <button
+                        className="btn btn-primary btn-sm me-1"
+                        onClick={() => handleEditStudent(student)}
+                        title="Düzenle"
+                      >
+                        Edit
+                      </button>
+                      {!student.verified && (
+                        <button
+                          className="btn btn-success btn-sm me-1"
+                          onClick={() => handleApprove(student.id)}
+                          title="Onayla"
+                        >
+                          ✓
+                        </button>
+                      )}
+                      <button
+                        className={`btn btn-sm me-1 ${
+                          student.view ? "btn-warning" : "btn-info"
+                        }`}
+                        onClick={() =>
+                          handleToggleVisibility(student.id, student.view)
+                        }
+                        title={student.view ? "Gizle" : "Göster"}
+                      >
+                        {student.view ? "👁️" : "👁️‍🗨️"}
+                      </button>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleDelete(student.id)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  )}
+                </tr>
+                {expandedStudents.has(student.id) &&
+                  student.lessons &&
+                  student.lessons.length > 0 && (
+                    <tr>
+                      <td colSpan={isAdmin ? 7 : 4} className="p-0">
+                        <div className="p-3 border-top bg-light">
+                          <div className="d-flex justify-content-between align-items-center mb-2">
+                            <h6 className="mb-0">
+                              📚 {student.name} {student.surname} - Dersler
+                            </h6>
+                            <button
+                              className="btn btn-sm btn-outline-secondary"
+                              onClick={() => toggleStudentExpansion(student.id)}
+                            >
+                              ✕ Kapat
+                            </button>
+                          </div>
+                          <div className="row">
+                            {student.lessons.map((lesson) => (
+                              <div key={lesson.id} className="col-md-4 mb-2">
+                                <div className="card border-primary">
+                                  <div className="card-body p-2">
+                                    <h6 className="card-title mb-1 text-primary">
+                                      {lesson.name}
+                                    </h6>
+                                    {lesson.description && (
+                                      <p className="card-text small mb-1">
+                                        {lesson.description}
+                                      </p>
+                                    )}
+                                    <small className="text-muted">
+                                      📅 {lesson.academicYear} - {lesson.term}
+                                    </small>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-      {/* Öğrenci bulunamadı mesajı */}
       {students.length === 0 && (
         <div className="text-center text-muted mt-4">
           <p>Öğrenci bulunamadı.</p>
         </div>
+      )}
+
+      {showAssignModal && selectedStudent && (
+        <AssignLessonModal
+          student={selectedStudent}
+          onClose={handleCloseAssignModal}
+          onSuccess={handleAssignSuccess}
+        />
       )}
     </div>
   );

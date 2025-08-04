@@ -1,137 +1,137 @@
-package com.example.backend.controller; // Controller paketi
+package com.example.backend.controller;
 
-import com.example.backend.entities.Student; // Öğrenci entity'si
-import com.example.backend.exception.ResourceNotFoundException; // Kaynak bulunamadı hatası
-import com.example.backend.request.CreateStudentRequest; // Öğrenci oluşturma isteği
-import com.example.backend.request.UpdateStudentRequest; // Öğrenci güncelleme isteği
-import com.example.backend.response.StudentResponse; // Öğrenci yanıt DTO'su
-import com.example.backend.service.concretes.StudentManager; // Öğrenci yönetici servisi
-import com.example.backend.utility.ResponseMapper; // Yanıt dönüştürücü
-import lombok.RequiredArgsConstructor; // Constructor injection için
-import org.springframework.http.ResponseEntity; // HTTP yanıt wrapper'ı
-import org.springframework.web.bind.annotation.*; // Web controller anotasyonları
+import com.example.backend.entities.Student;
+import com.example.backend.exception.ResourceNotFoundException;
+import com.example.backend.request.CreateStudentRequest;
+import com.example.backend.request.UpdateStudentRequest;
+import com.example.backend.response.StudentResponse;
+import com.example.backend.service.concretes.StudentManager;
+import com.example.backend.utility.ResponseMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap; // Hash map
-import java.util.List; // Liste
-import java.util.Map; // Map
-import java.util.stream.Collectors; // Stream toplama
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-@RestController // REST controller anotasyonu
-@RequestMapping("/api/v3") // API endpoint prefix'i
-@RequiredArgsConstructor // Constructor injection
-public class StudentController { // Öğrenci controller sınıfı
+@RestController
+@RequestMapping("/api/v3")
+@RequiredArgsConstructor
+public class StudentController {
 
-    private final StudentManager studentManager; // Öğrenci yönetici servisi
+    private final StudentManager studentManager;
 
-    @GetMapping("/students") // Tüm öğrencileri getir
-    public List<StudentResponse> getStudents() { // Öğrenci listesi metodu
-        return studentManager.findAll().stream().map(ResponseMapper::toStudentResponse).collect(Collectors.toList()); // Tüm öğrencileri döndür
+    @GetMapping("/students")
+    public List<StudentResponse> getStudents() {
+        return studentManager.findAll().stream().map(ResponseMapper::toStudentResponse).collect(Collectors.toList());
     }
 
-    @GetMapping("/students/verified") // Onaylanmış öğrencileri getir
-    public List<StudentResponse> getVerifiedStudents() { // Onaylanmış öğrenci listesi metodu
-        return studentManager.findVerifiedAndViewable().stream().map(ResponseMapper::toStudentResponse).collect(Collectors.toList()); // Onaylanmış öğrencileri döndür
+    @GetMapping("/students/verified")
+    public List<StudentResponse> getVerifiedStudents() {
+        return studentManager.findVerifiedAndViewable().stream().map(ResponseMapper::toStudentResponse).collect(Collectors.toList());
     }
 
-    @GetMapping("/students/unverified") // Onaylanmamış öğrencileri getir
-    public List<StudentResponse> getUnverifiedStudents() { // Onaylanmamış öğrenci listesi metodu
-        return studentManager.findUnverified().stream().map(ResponseMapper::toStudentResponse).collect(Collectors.toList()); // Onaylanmamış öğrencileri döndür
+    @GetMapping("/students/unverified")
+    public List<StudentResponse> getUnverifiedStudents() {
+        return studentManager.findUnverified().stream().map(ResponseMapper::toStudentResponse).collect(Collectors.toList());
     }
 
-    @GetMapping("/students/all") // Tüm öğrencileri getir (alternatif endpoint)
-    public List<StudentResponse> getAllStudents() { // Tüm öğrenci listesi metodu
-        return studentManager.findAll().stream().map(ResponseMapper::toStudentResponse).collect(Collectors.toList()); // Tüm öğrencileri döndür
+    @GetMapping("/students/all")
+    public List<StudentResponse> getAllStudents() {
+        return studentManager.findAll().stream().map(ResponseMapper::toStudentResponse).collect(Collectors.toList());
     }
 
-    @GetMapping("/students/{id}") // ID ile öğrenci getir
-    public ResponseEntity<StudentResponse> getStudentById(@PathVariable int id) { // ID ile öğrenci getirme metodu
-        try { // Hata yakalama bloğu
-            Student student = studentManager.findById(id); // Öğrenciyi bul
-            return ResponseEntity.ok(ResponseMapper.toStudentResponse(student)); // Başarılı yanıt döndür
-        } catch (ResourceNotFoundException e) { // Kaynak bulunamadı hatası
-            return ResponseEntity.notFound().build(); // 404 yanıtı döndür
+    @GetMapping("/students/{id}")
+    public ResponseEntity<StudentResponse> getStudentById(@PathVariable int id) {
+        try {
+            Student student = studentManager.findById(id);
+            return ResponseEntity.ok(ResponseMapper.toStudentResponse(student));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 
-    @GetMapping("/students/search") // Öğrenci ara
-    public ResponseEntity<List<StudentResponse>> searchStudents(@RequestParam String q) { // Öğrenci arama metodu
-        String trimmed = q.trim(); // Arama terimini temizle
-        List<StudentResponse> students = studentManager.search(trimmed) // Öğrencileri ara
-                .stream().map(ResponseMapper::toStudentResponse).collect(Collectors.toList()); // Sonuçları dönüştür
-        return ResponseEntity.ok(students); // Başarılı yanıt döndür
+    @GetMapping("/students/search")
+    public ResponseEntity<List<StudentResponse>> searchStudents(@RequestParam String q) {
+        String trimmed = q.trim();
+        List<StudentResponse> students = studentManager.search(trimmed)
+                .stream().map(ResponseMapper::toStudentResponse).collect(Collectors.toList());
+        return ResponseEntity.ok(students);
     }
 
-    @GetMapping("/students/verified/search") // Onaylanmış öğrencilerde ara
-    public ResponseEntity<List<StudentResponse>> searchVerifiedStudents(@RequestParam String q) { // Onaylanmış öğrenci arama metodu
-        String trimmed = q.trim(); // Arama terimini temizle
-        List<StudentResponse> students = studentManager.searchVerifiedAndViewable(trimmed) // Onaylanmış öğrencilerde ara
-                .stream().map(ResponseMapper::toStudentResponse).collect(Collectors.toList()); // Sonuçları dönüştür
-        return ResponseEntity.ok(students); // Başarılı yanıt döndür
+    @GetMapping("/students/verified/search")
+    public ResponseEntity<List<StudentResponse>> searchVerifiedStudents(@RequestParam String q) {
+        String trimmed = q.trim();
+        List<StudentResponse> students = studentManager.searchVerifiedAndViewable(trimmed)
+                .stream().map(ResponseMapper::toStudentResponse).collect(Collectors.toList());
+        return ResponseEntity.ok(students);
     }
 
-    @PostMapping("/students") // Yeni öğrenci oluştur
-    public ResponseEntity<StudentResponse> createStudent(@RequestBody CreateStudentRequest request) { // Öğrenci oluşturma metodu
-        try { // Hata yakalama bloğu
-            Student newStudent = new Student(); // Yeni öğrenci oluştur
-            newStudent.setName(request.getName()); // İsimi ayarla
-            newStudent.setSurname(request.getSurname()); // Soyismi ayarla
-            newStudent.setNumber(request.getNumber()); // Numarayı ayarla
-            newStudent.setVerified(true); // Onaylı olarak işaretle
-            newStudent.setView(true); // Görünür olarak işaretle
+    @PostMapping("/students")
+    public ResponseEntity<StudentResponse> createStudent(@RequestBody CreateStudentRequest request) {
+        try {
+            Student newStudent = new Student();
+            newStudent.setName(request.getName());
+            newStudent.setSurname(request.getSurname());
+            newStudent.setNumber(request.getNumber());
+            newStudent.setVerified(true);
+            newStudent.setView(true);
             
-            Student savedStudent = studentManager.save(newStudent); // Öğrenciyi kaydet
-            return ResponseEntity.ok(ResponseMapper.toStudentResponse(savedStudent)); // Başarılı yanıt döndür
-        } catch (Exception e) { // Genel hata yakalama
-            return ResponseEntity.badRequest().build(); // 400 yanıtı döndür
+            Student savedStudent = studentManager.save(newStudent);
+            return ResponseEntity.ok(ResponseMapper.toStudentResponse(savedStudent));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 
-    @PutMapping("/students/{id}") // Öğrenci güncelle
-    public ResponseEntity<StudentResponse> updateStudent(@PathVariable Integer id, @RequestBody UpdateStudentRequest request) { // Öğrenci güncelleme metodu
-        try { // Hata yakalama bloğu
-            Student studentDetails = new Student(); // Öğrenci detayları oluştur
-            studentDetails.setName(request.getName()); // İsimi ayarla
-            studentDetails.setSurname(request.getSurname()); // Soyismi ayarla
-            studentDetails.setNumber(request.getNumber()); // Numarayı ayarla
-            studentDetails.setVerified(request.getVerified()); // Onay durumunu ayarla
-            studentDetails.setView(request.getView()); // Görünürlük durumunu ayarla
+    @PutMapping("/students/{id}")
+    public ResponseEntity<StudentResponse> updateStudent(@PathVariable Integer id, @RequestBody UpdateStudentRequest request) {
+        try {
+            Student studentDetails = new Student();
+            studentDetails.setName(request.getName());
+            studentDetails.setSurname(request.getSurname());
+            studentDetails.setNumber(request.getNumber());
+            studentDetails.setVerified(request.getVerified());
+            studentDetails.setView(request.getView());
             
-            Student updatedStudent = studentManager.update(id, studentDetails); // Öğrenciyi güncelle
-            return ResponseEntity.ok(ResponseMapper.toStudentResponse(updatedStudent)); // Başarılı yanıt döndür
-        } catch (ResourceNotFoundException e) { // Kaynak bulunamadı hatası
-            return ResponseEntity.notFound().build(); // 404 yanıtı döndür
+            Student updatedStudent = studentManager.update(id, studentDetails);
+            return ResponseEntity.ok(ResponseMapper.toStudentResponse(updatedStudent));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 
-    @PutMapping("/students/{id}/approve") // Öğrenci onayla
-    public ResponseEntity<StudentResponse> approveStudent(@PathVariable Integer id) { // Öğrenci onaylama metodu
-        try { // Hata yakalama bloğu
-            Student approvedStudent = studentManager.approveStudent(id); // Öğrenciyi onayla
-            return ResponseEntity.ok(ResponseMapper.toStudentResponse(approvedStudent)); // Başarılı yanıt döndür
-        } catch (ResourceNotFoundException e) { // Kaynak bulunamadı hatası
-            return ResponseEntity.notFound().build(); // 404 yanıtı döndür
+    @PutMapping("/students/{id}/approve")
+    public ResponseEntity<StudentResponse> approveStudent(@PathVariable Integer id) {
+        try {
+            Student approvedStudent = studentManager.approveStudent(id);
+            return ResponseEntity.ok(ResponseMapper.toStudentResponse(approvedStudent));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 
-    @PutMapping("/students/{id}/visibility") // Öğrenci görünürlüğünü ayarla
-    public ResponseEntity<StudentResponse> setStudentVisibility(@PathVariable Integer id, @RequestParam boolean view) { // Görünürlük ayarlama metodu
-        try { // Hata yakalama bloğu
-            Student updatedStudent = studentManager.setStudentVisibility(id, view); // Görünürlüğü ayarla
-            return ResponseEntity.ok(ResponseMapper.toStudentResponse(updatedStudent)); // Başarılı yanıt döndür
-        } catch (ResourceNotFoundException e) { // Kaynak bulunamadı hatası
-            return ResponseEntity.notFound().build(); // 404 yanıtı döndür
+    @PutMapping("/students/{id}/visibility")
+    public ResponseEntity<StudentResponse> setStudentVisibility(@PathVariable Integer id, @RequestParam boolean view) {
+        try {
+            Student updatedStudent = studentManager.setStudentVisibility(id, view);
+            return ResponseEntity.ok(ResponseMapper.toStudentResponse(updatedStudent));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 
-    @DeleteMapping("/students/{id}") // Öğrenci sil
-    public ResponseEntity<Map<String, Boolean>> deleteStudent(@PathVariable Integer id) { // Öğrenci silme metodu
-        try { // Hata yakalama bloğu
-            studentManager.deleteById(id); // Öğrenciyi sil
-            Map<String, Boolean> response = new HashMap<>(); // Yanıt map'i oluştur
-            response.put("deleted", Boolean.TRUE); // Silme durumunu ekle
-            return ResponseEntity.ok(response); // Başarılı yanıt döndür
-        } catch (ResourceNotFoundException e) { // Kaynak bulunamadı hatası
-            return ResponseEntity.notFound().build(); // 404 yanıtı döndür
+    @DeleteMapping("/students/{id}")
+    public ResponseEntity<Map<String, Boolean>> deleteStudent(@PathVariable Integer id) {
+        try {
+            studentManager.deleteById(id);
+            Map<String, Boolean> response = new HashMap<>();
+            response.put("deleted", Boolean.TRUE);
+            return ResponseEntity.ok(response);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 } 

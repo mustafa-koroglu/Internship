@@ -1,100 +1,99 @@
-package com.example.backend.service.concretes; // Service paketi
+package com.example.backend.service.concretes;
 
-import com.example.backend.dataAccess.StudentsRepository; // Öğrenci repository'si
-import com.example.backend.entities.Student; // Öğrenci entity'si
-import com.example.backend.exception.ResourceNotFoundException; // Kaynak bulunamadı hatası
-import com.example.backend.service.abstracts.StudentService; // Öğrenci servis arayüzü
-import lombok.RequiredArgsConstructor; // Constructor injection
-import org.springframework.stereotype.Service; // Service anotasyonu
-import java.util.List; // Liste
+import com.example.backend.dataAccess.StudentsRepository;
+import com.example.backend.entities.Student;
+import com.example.backend.exception.ResourceNotFoundException;
+import com.example.backend.service.abstracts.StudentService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import java.util.List;
 
-@Service // Spring service anotasyonu
-@RequiredArgsConstructor // Constructor injection
-public class StudentManager implements StudentService { // Öğrenci yönetici sınıfı
+@Service
+@RequiredArgsConstructor
+public class StudentManager implements StudentService {
 
-    private final StudentsRepository studentsRepository; // Öğrenci repository'si
+    private final StudentsRepository studentsRepository;
 
-    @Override // Arayüz implementasyonu
-    public List<Student> findAll() { // Tüm öğrencileri getir metodu
-        return studentsRepository.findAll(); // Tüm öğrencileri döndür
+    @Override
+    public List<Student> findAll() {
+        return studentsRepository.findAllWithLessons();
     }
 
-    @Override // Arayüz implementasyonu
-    public Student findById(int id) { // ID ile öğrenci bulma metodu
-        return studentsRepository.findById(id) // ID ile öğrenciyi bul
-                .orElseThrow(() -> new ResourceNotFoundException("Öğrenci bulunamadı: " + id)); // Bulunamazsa hata fırlat
+    @Override
+    public Student findById(int id) {
+        return studentsRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Öğrenci bulunamadı: " + id));
     }
 
-    @Override // Arayüz implementasyonu
-    public Student save(Student student) { // Öğrenci kaydetme metodu
-        return studentsRepository.save(student); // Öğrenciyi kaydet ve döndür
+    @Override
+    public Student save(Student student) {
+        return studentsRepository.save(student);
     }
 
-    @Override // Arayüz implementasyonu
-    public Student update(int id, Student studentDetails) { // Öğrenci güncelleme metodu
-        Student updateStudent = studentsRepository.findById(id) // Güncellenecek öğrenciyi bul
-                .orElseThrow(() -> new ResourceNotFoundException("Öğrenci bulunamadı: " + id)); // Bulunamazsa hata fırlat
+    @Override
+    public Student update(int id, Student studentDetails) {
+        Student updateStudent = studentsRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Öğrenci bulunamadı: " + id));
         
-        updateStudent.setName(studentDetails.getName()); // İsmi güncelle
-        updateStudent.setSurname(studentDetails.getSurname()); // Soyismi güncelle
-        updateStudent.setNumber(studentDetails.getNumber()); // Numarayı güncelle
+        updateStudent.setName(studentDetails.getName());
+        updateStudent.setSurname(studentDetails.getSurname());
+        updateStudent.setNumber(studentDetails.getNumber());
+        updateStudent.setVerified(studentDetails.getVerified());
+        updateStudent.setView(studentDetails.getView());
         
-        updateStudent.setVerified(studentDetails.getVerified()); // Onay durumunu güncelle
-        updateStudent.setView(studentDetails.getView()); // Görünürlük durumunu güncelle
-        
-        return studentsRepository.save(updateStudent); // Güncellenmiş öğrenciyi kaydet ve döndür
+        return studentsRepository.save(updateStudent);
     }
 
-    @Override // Arayüz implementasyonu
-    public void deleteById(int id) { // Öğrenci silme metodu
-        if (!studentsRepository.existsById(id)) { // Öğrenci var mı kontrol et
-            throw new ResourceNotFoundException("Öğrenci bulunamadı: " + id); // Yoksa hata fırlat
+    @Override
+    public void deleteById(int id) {
+        if (!studentsRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Öğrenci bulunamadı: " + id);
         }
-        studentsRepository.deleteById(id); // Öğrenciyi sil
+        studentsRepository.deleteById(id);
     }
 
-    @Override // Arayüz implementasyonu
-    public List<Student> search(String searchTerm) { // Öğrenci arama metodu
-        return studentsRepository.findByNameOrSurnameOrNumberStartsWithIgnoreCase(searchTerm); // Arama yap ve döndür
+    @Override
+    public List<Student> search(String searchTerm) {
+        return studentsRepository.findByNameOrSurnameOrNumberStartsWithIgnoreCase(searchTerm);
     }
 
-    @Override // Arayüz implementasyonu
-    public List<Student> findVerifiedAndViewable() { // Onaylanmış ve görünür öğrencileri getir metodu
-        return studentsRepository.findByVerifiedTrueAndViewTrue(); // Onaylanmış ve görünür öğrencileri döndür
+    @Override
+    public List<Student> findVerifiedAndViewable() {
+        return studentsRepository.findByVerifiedTrueAndViewTrue();
     }
 
-    @Override // Arayüz implementasyonu
-    public List<Student> findUnverified() { // Onaylanmamış öğrencileri getir metodu
-        return studentsRepository.findByVerifiedFalse(); // Onaylanmamış öğrencileri döndür
+    @Override
+    public List<Student> findUnverified() {
+        return studentsRepository.findByVerifiedFalse();
     }
 
-    @Override // Arayüz implementasyonu
-    public List<Student> findVerified() { // Onaylanmış öğrencileri getir metodu
-        return studentsRepository.findByVerifiedTrue(); // Onaylanmış öğrencileri döndür
+    @Override
+    public List<Student> findVerified() {
+        return studentsRepository.findByVerifiedTrue();
     }
 
-    @Override // Arayüz implementasyonu
-    public List<Student> searchVerifiedAndViewable(String searchTerm) { // Onaylanmış öğrencilerde arama metodu
-        return studentsRepository.findVerifiedAndViewableByNameOrSurnameOrNumberStartsWithIgnoreCase(searchTerm); // Arama yap ve döndür
+    @Override
+    public List<Student> searchVerifiedAndViewable(String searchTerm) {
+        return studentsRepository.findVerifiedAndViewableByNameOrSurnameOrNumberStartsWithIgnoreCase(searchTerm);
     }
 
-    @Override // Arayüz implementasyonu
-    public Student approveStudent(int id) { // Öğrenci onaylama metodu
-        Student student = studentsRepository.findById(id) // Onaylanacak öğrenciyi bul
-                .orElseThrow(() -> new ResourceNotFoundException("Öğrenci bulunamadı: " + id)); // Bulunamazsa hata fırlat
+    @Override
+    public Student approveStudent(int id) {
+        Student student = studentsRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Öğrenci bulunamadı: " + id));
         
-        student.setVerified(true); // Öğrenciyi onayla
+        student.setVerified(true);
         
-        return studentsRepository.save(student); // Onaylanmış öğrenciyi kaydet ve döndür
+        return studentsRepository.save(student);
     }
 
-    @Override // Arayüz implementasyonu
-    public Student setStudentVisibility(int id, boolean view) { // Öğrenci görünürlük ayarlama metodu
-        Student student = studentsRepository.findById(id) // Görünürlüğü değiştirilecek öğrenciyi bul
-                .orElseThrow(() -> new ResourceNotFoundException("Öğrenci bulunamadı: " + id)); // Bulunamazsa hata fırlat
+    @Override
+    public Student setStudentVisibility(int id, boolean view) {
+        Student student = studentsRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Öğrenci bulunamadı: " + id));
         
-        student.setView(view); // Görünürlük durumunu ayarla
+        student.setView(view);
         
-        return studentsRepository.save(student); // Güncellenmiş öğrenciyi kaydet ve döndür
+        return studentsRepository.save(student);
     }
 }

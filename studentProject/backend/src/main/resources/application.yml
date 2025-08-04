@@ -1,19 +1,16 @@
-# Spring Boot uygulamasının ana yapılandırma dosyasıdır
+# Spring Boot uygulamasının ana yapılandırma dosyası
 server:
-  port: 8080
+  port: 8080 # Sunucu portu
 spring:
   application:
-    # Uygulamanın adı
-    name: backend
+    name: backend # Uygulamanın adı
   cloud:
     config:
-      # Konfigürasyon sunucusunun adresi
-      uri: http://localhost:8888
+      uri: http://localhost:8888 # Konfigürasyon sunucusunun adresi
   config:
-    # Harici konfigürasyon sunucusundan ayarları içe aktarır
-    import: "configserver:"
+    import: "configserver:" # Harici konfigürasyon sunucusundan ayarları içe aktarır
 
 # CSV işleme konfigürasyonu
 csv:
   watch:
-    directory: ../csv-files
+    directory: ../csv-files # CSV dosyalarının izleneceği dizin

@@ -1,5 +1,7 @@
 package com.example.backend.response; // Response paketi
 
+import java.util.List;
+
 public class StudentResponse { // Öğrenci yanıtı DTO sınıfı
     private int id; // Öğrenci ID'si
 
@@ -13,6 +15,8 @@ public class StudentResponse { // Öğrenci yanıtı DTO sınıfı
 
     private Boolean view; // Görünürlük durumu
 
+    private List<LessonResponse> lessons; // Öğrencinin dersleri
+
     public int getId() { return id; } // ID getter
     public void setId(int id) { this.id = id; } // ID setter
     public String getName() { return name; } // İsim getter
@@ -25,4 +29,6 @@ public class StudentResponse { // Öğrenci yanıtı DTO sınıfı
     public void setVerified(Boolean verified) { this.verified = verified; } // Onay durumu setter
     public Boolean getView() { return view; } // Görünürlük durumu getter
     public void setView(Boolean view) { this.view = view; } // Görünürlük durumu setter
+    public List<LessonResponse> getLessons() { return lessons; } // Dersler getter
+    public void setLessons(List<LessonResponse> lessons) { this.lessons = lessons; } // Dersler setter
 } 

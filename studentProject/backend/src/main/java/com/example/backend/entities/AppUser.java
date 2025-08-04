@@ -1,25 +1,25 @@
-package com.example.backend.entities;
+package com.example.backend.entities; // Entity paketi
 
 import jakarta.persistence.*; // JPA anotasyonları
 import lombok.AllArgsConstructor; // Tüm alanlar için constructor
 import lombok.Data; // Getter, setter, toString, equals, hashCode
 import lombok.NoArgsConstructor; // Parametresiz constructor
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Entity
-@Table(name = "users")
-public class AppUser {
+@Data // Lombok data anotasyonu
+@AllArgsConstructor // Tüm alanlar için constructor
+@NoArgsConstructor // Parametresiz constructor
+@Entity // JPA entity anotasyonu
+@Table(name = "users") // Tablo adı
+public class AppUser { // Kullanıcı entity sınıfı
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Id // Primary key anotasyonu
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Otomatik artan ID
+    private Long id; // Kullanıcı ID'si
 
-    @Column(unique = true)
-    private String username;
+    @Column(unique = true) // Benzersiz kullanıcı adı
+    private String username; // Kullanıcı adı
 
-    private String password;
+    private String password; // Şifre
 
-    private String role;
+    private String role; // Kullanıcı rolü
 }

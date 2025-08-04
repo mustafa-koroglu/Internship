@@ -1,26 +1,14 @@
 import React, { useState } from "react";
 
-/**
- * Admin kullanıcılar için yeni kullanıcı ekleme modalı.
- * Kullanıcı adı, şifre ve rol ile yeni kullanıcı kaydı yapılır.
- * Başarılı olursa modal kapanır, hata olursa mesaj gösterilir.
- *
- * @param {function} onClose - Modalı kapatma fonksiyonu
- */
+// Admin kullanıcılar için yeni kullanıcı ekleme modalı
 function RegisterModal({ onClose }) {
-  // Form state'leri
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("USER");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  // JWT token (admin olarak giriş yapılmış olmalı)
   const token = localStorage.getItem("token");
 
-  /**
-   * Form submit edildiğinde kullanıcı kaydını backend'e gönderir
-   * @param {Event} e - Form submit event'i
-   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -63,10 +51,8 @@ function RegisterModal({ onClose }) {
           </div>
           <form onSubmit={handleSubmit}>
             <div className="modal-body">
-              {/* Hata veya başarı mesajı */}
               {error && <div className="alert alert-danger">{error}</div>}
               {success && <div className="alert alert-success">{success}</div>}
-              {/* Kullanıcı adı inputu */}
               <div className="mb-3">
                 <label className="form-label">Kullanıcı Adı</label>
                 <input
@@ -77,7 +63,6 @@ function RegisterModal({ onClose }) {
                   required
                 />
               </div>
-              {/* Şifre inputu */}
               <div className="mb-3">
                 <label className="form-label">Şifre</label>
                 <input
@@ -88,7 +73,6 @@ function RegisterModal({ onClose }) {
                   required
                 />
               </div>
-              {/* Rol seçimi */}
               <div className="mb-3">
                 <label className="form-label">Rol</label>
                 <select
