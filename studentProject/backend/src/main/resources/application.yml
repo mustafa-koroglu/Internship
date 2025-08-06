@@ -13,4 +13,4 @@ spring:
 # CSV işleme konfigürasyonu
 csv:
   watch:
-    directory: ../csv-files # CSV dosyalarının izleneceği dizin
+    directory: ./csv-files # CSV dosyalarının izleneceği dizin

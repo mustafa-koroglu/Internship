@@ -30,7 +30,7 @@ public class SecurityConfig { // Güvenlik yapılandırma sınıfı
             .cors(cors -> cors.configurationSource(corsConfigurationSource)) // CORS yapılandırmasını uygula
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Oturum yönetimini stateless yap
             .authorizeHttpRequests(auth -> auth // Yetkilendirme kurallarını tanımla
-                .requestMatchers("/auth/**", "/api/public", "/test/public").permitAll() // Kimlik doğrulama gerektirmeyen endpointler
+                .requestMatchers("/auth/**", "/api/public", "/test/public", "/api/test/integration/**").permitAll() // Kimlik doğrulama gerektirmeyen endpointler
                 .requestMatchers("/api/v3/students").hasAnyRole("ADMIN", "USER") // Öğrenci listeleme için ADMIN veya USER
                 .requestMatchers("/api/v3/students/search**").hasAnyRole("ADMIN", "USER") // Öğrenci arama için ADMIN veya USER
                 .requestMatchers("/api/v3/students/verified").hasAnyRole("ADMIN", "USER") // Onaylanmış öğrenciler için ADMIN veya USER

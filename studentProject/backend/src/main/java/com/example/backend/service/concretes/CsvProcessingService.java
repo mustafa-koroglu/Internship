@@ -28,21 +28,21 @@ public class CsvProcessingService { // CSV işleme servisi
     private final ExecutorService csvProcessingExecutor = Executors.newSingleThreadExecutor(); // Tek thread executor
 
     public void shutdown() { // Uygulama kapatma metodu
-        if (csvProcessingExecutor != null && !csvProcessingExecutor.isShutdown()) { // Executor kontrolü
-            csvProcessingExecutor.shutdown(); // Executor'ı kapat
-            log.info("CSV isleme thread pool kapatildi."); // Log mesajı
+        if (csvProcessingExecutor != null && !csvProcessingExecutor.isShutdown()) { // Executor kontrolu
+            csvProcessingExecutor.shutdown(); // Executor'i kapat
+            log.info("CSV isleme thread pool kapatildi."); // Log mesaji
         }
     }
 
-    public void processCsvFiles() { // CSV dosyalarını işleme metodu
-        log.info("CSV dosyalari isleniyor..."); // Log mesajı
+    public void processCsvFiles() { // CSV dosyalarini isleme metodu
+        log.info("CSV dosyalari isleniyor..."); // Log mesaji
         
         try { // Hata yakalama bloğu
             Path directory = Paths.get(csvWatchDirectory); // Klasör yolunu oluştur
-            if (!Files.exists(directory)) { // Klasör yoksa
-                Files.createDirectories(directory); // Klasörü oluştur
-                log.info("CSV klasoru olusturuldu: {}", csvWatchDirectory); // Log mesajı
-                return; // Metodu sonlandır
+            if (!Files.exists(directory)) { // Klasor yoksa
+                Files.createDirectories(directory); // Klasoru olustur
+                log.info("CSV klasoru olusturuldu: {}", csvWatchDirectory); // Log mesaji
+                return; // Metodu sonlandir
             }
 
             java.io.File[] csvFiles = directory.toFile().listFiles((dir, name) -> // CSV dosyalarını filtrele
@@ -51,8 +51,8 @@ public class CsvProcessingService { // CSV işleme servisi
                 !name.toLowerCase().endsWith(".fail")); // Fail olmayan
 
             if (csvFiles == null || csvFiles.length == 0) { // Dosya yoksa
-                log.info("Islenecek CSV dosyasi bulunamadi."); // Log mesajı
-                return; // Metodu sonlandır
+                log.info("Islenecek CSV dosyasi bulunamadi."); // Log mesaji
+                return; // Metodu sonlandir
             }
 
             processCsvFilesSequentially(csvFiles); // Dosyaları sırayla işle
@@ -62,8 +62,8 @@ public class CsvProcessingService { // CSV işleme servisi
         }
     }
 
-    private void processCsvFilesSequentially(java.io.File[] csvFiles) { // Dosyaları sırayla işleme metodu
-        log.info("{} CSV dosyasi multithread ile sirayla isleniyor...", csvFiles.length); // Log mesajı
+    private void processCsvFilesSequentially(java.io.File[] csvFiles) { // Dosyalari sirayla isleme metodu
+        log.info("{} CSV dosyasi multithread ile sirayla isleniyor...", csvFiles.length); // Log mesaji
         
         CompletableFuture<Void> previousTask = CompletableFuture.completedFuture(null); // Başlangıç task'ı
         
@@ -71,13 +71,13 @@ public class CsvProcessingService { // CSV işleme servisi
             final java.io.File currentFile = csvFile; // Dosyayı final yap
             
             previousTask = previousTask.thenRunAsync(() -> { // Asenkron zincir oluştur
-                try { // Hata yakalama bloğu
-                    log.info("CSV dosyasi islenmeye basliyor: {}", currentFile.getName()); // Başlangıç log'u
+                try { // Hata yakalama blogu
+                    log.info("CSV dosyasi islenmeye basliyor: {}", currentFile.getName()); // Baslangic log'u
                     
-                    // Dosyayı işle ve uzantısını hemen değiştir
+                    // Dosyayi isle ve uzantisini hemen degistir
                     processCsvFile(currentFile);
                     
-                    log.info("CSV dosyasi isleme tamamlandi: {}", currentFile.getName()); // Bitiş log'u
+                    log.info("CSV dosyasi isleme tamamlandi: {}", currentFile.getName()); // Bitis log'u
                     
                 } catch (Exception e) { // Hata yakalama
                     log.error("CSV dosyasi islenirken hata: {} - Dosya: {}", e.getMessage(), currentFile.getName(), e); // Hata log'u
@@ -85,37 +85,44 @@ public class CsvProcessingService { // CSV işleme servisi
             }, csvProcessingExecutor); // Executor'da çalıştır
         }
         
-        try { // Hata yakalama bloğu
-            previousTask.get(); // Tüm task'ların bitmesini bekle
+        try { // Hata yakalama blogu
+            previousTask.get(); // Tum task'larin bitmesini bekle
             log.info("Tum CSV dosyalari isleme tamamlandi."); // Tamamlanma log'u
         } catch (Exception e) { // Hata yakalama
             log.error("CSV dosyalari islenirken hata olustu: {}", e.getMessage(), e); // Hata log'u
         }
     }
 
-    private void processCsvFile(java.io.File csvFile) { // Tek dosya işleme metodu
-        log.info("Dosya islenmeye basliyor: {}", csvFile.getName()); // Başlangıç log'u
+    private void processCsvFile(java.io.File csvFile) { // Tek dosya isleme metodu
+        log.info("Dosya islenmeye basliyor: {}", csvFile.getName()); // Baslangic log'u
         
-        CsvFileProcessor.CsvProcessingResult result = csvFileProcessor.processCsvFile(csvFile); // Dosyayı işle
-        
-        // Hemen uzantıyı değiştir
-        if (result.isSuccess()) { // Başarılı ise
-            log.info("Dosya basariyla islendi, uzanti degistiriliyor: {}", csvFile.getName()); // Başarı log'u
-            renameFileToDone(csvFile); // Done olarak yeniden adlandır
-            saveFileRecord(csvFile, true, result.getStudentCount(), result.getMessage()); // Başarı kaydı
-        } else { // Başarısız ise
-            log.warn("Dosya islenemedi, fail olarak isaretleniyor: {} - Hata: {}", csvFile.getName(), result.getErrorMessage()); // Hata log'u
-            renameFileToFail(csvFile, result.getErrorMessage()); // Fail olarak yeniden adlandır
-            saveFileRecord(csvFile, false, 0, result.getErrorMessage()); // Hata kaydı
+        try {
+            CsvFileProcessor.CsvProcessingResult result = csvFileProcessor.processCsvFile(csvFile); // Dosyayi isle
+            
+            // Hemen uzantiyi degistir
+            if (result.isSuccess()) { // Basarili ise
+                log.info("Dosya basariyla islendi, uzanti degistiriliyor: {}", csvFile.getName()); // Basari log'u
+                renameFileToDone(csvFile); // Done olarak yeniden adlandir
+                saveFileRecord(csvFile, true, result.getStudentCount(), result.getMessage()); // Basari kaydi
+            } else { // Basarisiz ise
+                log.warn("Dosya islenemedi, fail olarak isaretleniyor: {} - Hata: {}", csvFile.getName(), result.getErrorMessage()); // Hata log'u
+                renameFileToFail(csvFile, result.getErrorMessage()); // Fail olarak yeniden adlandir
+                saveFileRecord(csvFile, false, 0, result.getErrorMessage()); // Hata kaydi
+            }
+        } catch (Exception e) {
+            // Exception durumunda dosyayi fail olarak isaretle
+            log.error("Dosya islenirken exception olustu: {} - Dosya: {}", e.getMessage(), csvFile.getName(), e);
+            renameFileToFail(csvFile, "Exception: " + e.getMessage());
+            saveFileRecord(csvFile, false, 0, "Exception: " + e.getMessage());
         }
         
-        log.info("Dosya isleme tamamlandi: {}", csvFile.getName()); // Bitiş log'u
+        log.info("Dosya isleme tamamlandi: {}", csvFile.getName()); // Bitis log'u
         
         // 10 saniye bekle
         try {
             log.info("10 saniye bekleniyor..."); // Bekleme log'u
             Thread.sleep(10000); // 10 saniye bekle
-            log.info("Bekleme tamamlandi, sonraki dosyaya geciliyor..."); // Bekleme bitiş log'u
+            log.info("Bekleme tamamlandi, sonraki dosyaya geciliyor..."); // Bekleme bitis log'u
         } catch (InterruptedException e) {
             log.warn("Bekleme kesildi: {}", e.getMessage()); // Kesilme log'u
             Thread.currentThread().interrupt(); // Thread'i kes
@@ -127,9 +134,24 @@ public class CsvProcessingService { // CSV işleme servisi
             String newName = csvFile.getName().replace(".csv", ".done"); // Yeni isim oluştur
             java.io.File doneFile = new java.io.File(csvFile.getParent(), newName); // Yeni dosya oluştur
             
-            if (csvFile.renameTo(doneFile)) { // Yeniden adlandırma başarılı ise
-                log.info("Dosya .done uzantisina cevrildi: {}", doneFile.getName()); // Başarı log'u
-            } else { // Başarısız ise
+            // Dosya zaten .done uzantisina sahipse, islem yapma
+            if (csvFile.getName().endsWith(".done")) {
+                log.info("Dosya zaten .done uzantisina sahip: {}", csvFile.getName());
+                return;
+            }
+            
+            // Hedef dosya zaten varsa, once sil
+            if (doneFile.exists()) {
+                if (doneFile.delete()) {
+                    log.info("Eski .done dosyasi silindi: {}", doneFile.getName());
+                } else {
+                    log.warn("Eski .done dosyasi silinemedi: {}", doneFile.getName());
+                }
+            }
+            
+            if (csvFile.renameTo(doneFile)) { // Yeniden adlandirma basarili ise
+                log.info("Dosya .done uzantisina cevrildi: {}", doneFile.getName()); // Basari log'u
+            } else { // Basarisiz ise
                 log.error("Dosya yeniden adlandirilamadi: {}", csvFile.getName()); // Hata log'u
             }
         } catch (Exception e) { // Hata yakalama
@@ -142,9 +164,9 @@ public class CsvProcessingService { // CSV işleme servisi
             String newName = csvFile.getName().replace(".csv", ".fail"); // Yeni isim oluştur
             java.io.File failFile = new java.io.File(csvFile.getParent(), newName); // Yeni dosya oluştur
             
-            if (csvFile.renameTo(failFile)) { // Yeniden adlandırma başarılı ise
-                log.warn("Dosya .fail uzantisina cevrildi: {} - Hata: {}", failFile.getName(), errorMessage); // Uyarı log'u
-            } else { // Başarısız ise
+            if (csvFile.renameTo(failFile)) { // Yeniden adlandirma basarili ise
+                log.warn("Dosya .fail uzantisina cevrildi: {} - Hata: {}", failFile.getName(), errorMessage); // Uyari log'u
+            } else { // Basarisiz ise
                 log.error("Hatali dosya yeniden adlandirilamadi: {} - Hata: {}", csvFile.getName(), errorMessage); // Hata log'u
             }
         } catch (Exception e) { // Hata yakalama
@@ -165,8 +187,8 @@ public class CsvProcessingService { // CSV işleme servisi
                 fileRecord = new File(fileName, fullFileName, description); // Hata kaydı oluştur
             }
             
-            fileRepository.save(fileRecord); // Kaydı veritabanına kaydet
-            log.info("Dosya kaydi veritabanina kaydedildi: {} - Durum: {}", fileName, isSuccess ? "DONE" : "FAIL"); // Başarı log'u
+            fileRepository.save(fileRecord); // Kaydi veritabanina kaydet
+            log.info("Dosya kaydi veritabanina kaydedildi: {} - Durum: {}", fileName, isSuccess ? "DONE" : "FAIL"); // Basari log'u
             
         } catch (Exception e) { // Hata yakalama
             log.error("Dosya kaydi veritabanina kaydedilirken hata: {} - Dosya: {}", e.getMessage(), csvFile.getName()); // Hata log'u
