@@ -1,16 +1,20 @@
-# Spring Boot uygulamasının ana yapılandırma dosyası
 server:
-  port: 8080 # Sunucu portu
+  port: 8080
+
 spring:
   application:
-    name: backend # Uygulamanın adı
+    name: backend
+
   cloud:
     config:
-      uri: http://localhost:8888 # Konfigürasyon sunucusunun adresi
-  config:
-    import: "configserver:" # Harici konfigürasyon sunucusundan ayarları içe aktarır
+      uri: http://localhost:8888
+      fail-fast: true
 
-# CSV işleme konfigürasyonu
+  config:
+    import: "configserver:"  # Config Server'dan tüm ayarları al
+
+# Config Server'dan clickhouse.datasource ayarlarını alacak.
+
 csv:
   watch:
-    directory: ./csv-files # CSV dosyalarının izleneceği dizin
+    directory: ./csv-files

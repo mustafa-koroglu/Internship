@@ -1,4 +1,4 @@
-package com.example.backend.entities; // Entity paketi
+package com.example.backend.entities;
 
 import jakarta.persistence.*; // JPA anotasyonları
 import lombok.AllArgsConstructor; // Tüm alanlar için constructor
@@ -11,28 +11,28 @@ import java.util.Set;
 
 @Getter
 @Setter
-@AllArgsConstructor // Tüm alanlar için constructor
-@NoArgsConstructor // Parametresiz constructor
-@Entity(name = "students") // JPA entity anotasyonu
-public class Student { // Öğrenci entity sınıfı
-    @Id // Primary key anotasyonu
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Otomatik artan ID
-    private int id; // Öğrenci ID'si
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity(name = "students")
+public class Student {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
 
-    @Column(name = "name") // İsim sütunu
-    private String name; // Öğrenci adı
+    @Column(name = "name")
+    private String name;
 
-    @Column(name = "surname") // Soyisim sütunu
-    private String surname; // Öğrenci soyadı
+    @Column(name = "surname")
+    private String surname;
 
-    @Column(unique = true, name = "number") // Benzersiz numara sütunu
-    private String number; // Öğrenci numarası
+    @Column(unique = true, name = "number")
+    private String number;
 
-    @Column(name = "verified", nullable = false) // Onay durumu sütunu
-    private Boolean verified = false; // Onay durumu
+    @Column(name = "verified", nullable = false)
+    private Boolean verified = false;
 
-    @Column(name = "view", nullable = false) // Görünürlük sütunu
-    private Boolean view = false; // Görünürlük durumu
+    @Column(name = "view", nullable = false)
+    private Boolean view = false;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

@@ -100,6 +100,13 @@
     <artifactId>spring-boot-starter-integration</artifactId>
 </dependency>
 
+        <!-- https://mvnrepository.com/artifact/com.clickhouse/clickhouse-jdbc -->
+        <dependency>
+            <groupId>com.clickhouse</groupId>
+            <artifactId>clickhouse-jdbc</artifactId>
+            <version>0.6.5</version>
+        </dependency>
+
 
 
 

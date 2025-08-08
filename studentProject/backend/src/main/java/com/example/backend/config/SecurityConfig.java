@@ -31,6 +31,7 @@ public class SecurityConfig { // Güvenlik yapılandırma sınıfı
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Oturum yönetimini stateless yap
             .authorizeHttpRequests(auth -> auth // Yetkilendirme kurallarını tanımla
                 .requestMatchers("/auth/**", "/api/public", "/test/public", "/api/test/integration/**").permitAll() // Kimlik doğrulama gerektirmeyen endpointler
+                .requestMatchers("/api/v1/teachers/**").permitAll() // Teacher endpoint'leri için izin ver
                 .requestMatchers("/api/v3/students").hasAnyRole("ADMIN", "USER") // Öğrenci listeleme için ADMIN veya USER
                 .requestMatchers("/api/v3/students/search**").hasAnyRole("ADMIN", "USER") // Öğrenci arama için ADMIN veya USER
                 .requestMatchers("/api/v3/students/verified").hasAnyRole("ADMIN", "USER") // Onaylanmış öğrenciler için ADMIN veya USER
