@@ -1,19 +1,14 @@
-package com.example.backend.entities;
-
-import org.springframework.data.annotation.Id;
+package com.example.clickhouse.entity;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Teacher {
-    @Id
-    private int id;
+    private Long id;
     private String name;
     private String surname;
     private String phoneNumber;

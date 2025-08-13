@@ -1,0 +1,34 @@
+# Maven
+target/
+!target/*.jar
+!target/classes/
+!target/test-classes/
+
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Logs
+*.log
+
+
+
+# Documentation
+README.md
+docs/

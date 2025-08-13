@@ -1,0 +1,15 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:clickhouse://localhost:8123/student_management?compress=0
+    username: default
+    password: clickhouse123
+    driver-class-name: com.clickhouse.jdbc.ClickHouseDriver
+
+logging:
+  level:
+    org.springframework.jdbc: DEBUG
+    com.clickhouse: DEBUG
+    com.example.clickhouse: DEBUG

@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse-server
+    ports:
+      - "8123:8123" # HTTP port
+      - "9000:9000" # TCP port
+    volumes: []
+    environment:
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=clickhouse123
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+    restart: unless-stopped
+
+  clickhouse-service:
+    build: .
+    container_name: clickhouse-service-app
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:clickhouse://clickhouse:8123/default?compress=0
+      - SPRING_DATASOURCE_USERNAME=default
+      - SPRING_DATASOURCE_PASSWORD=clickhouse123
+    depends_on:
+      - clickhouse
+    restart: unless-stopped
