@@ -1,14 +1,29 @@
 // Uygulamanın ana bileşeni ve yönlendirme yapısı
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Login from "./Login";
 import StudentList from "./StudentList";
 import LessonManagement from "./LessonManagement";
+import IpManagement from "./IpManagement";
 import RegisterModal from "./RegisterModal";
 
 function App() {
   const [role, setRole] = useState(localStorage.getItem("role") || null);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+
+  // Modal açıkken body scroll'unu engelle
+  useEffect(() => {
+    const modals = document.querySelectorAll(".modal.show");
+    if (modals.length > 0) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [showRegisterModal]);
 
   const handleLogin = (userRole) => {
     setRole(userRole);
@@ -32,9 +47,14 @@ function App() {
                 Öğrenci Listesi
               </Link>
               {role === "ADMIN" && (
-                <Link to="/lessons" className="btn btn-outline-light">
-                  Ders Yönetimi
-                </Link>
+                <>
+                  <Link to="/lessons" className="btn btn-outline-light">
+                    Ders Yönetimi
+                  </Link>
+                  <Link to="/ip-management" className="btn btn-outline-light">
+                    IP Yönetimi
+                  </Link>
+                </>
               )}
             </div>
             <div className="d-flex align-items-center gap-2">
@@ -70,9 +90,14 @@ function App() {
                     Öğrenci Listesi
                   </Link>
                   {role === "ADMIN" && (
-                    <Link to="/lessons" className="btn btn-success">
-                      Ders Yönetimi
-                    </Link>
+                    <>
+                      <Link to="/lessons" className="btn btn-success me-3">
+                        Ders Yönetimi
+                      </Link>
+                      <Link to="/ip-management" className="btn btn-info">
+                        IP Yönetimi
+                      </Link>
+                    </>
                   )}
                 </div>
               </div>
@@ -90,6 +115,16 @@ function App() {
           element={
             role ? (
               <LessonManagement role={role} />
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          }
+        />
+        <Route
+          path="/ip-management"
+          element={
+            role ? (
+              <IpManagement role={role} />
             ) : (
               <Login onLogin={handleLogin} />
             )
