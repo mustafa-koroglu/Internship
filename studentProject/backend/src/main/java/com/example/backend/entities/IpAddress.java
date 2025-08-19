@@ -20,7 +20,7 @@ public class IpAddress {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "ip_address", nullable = false, unique = true)
+    @Column(name = "ip_address", nullable = false, unique = true, length = 45)
     private String ipAddress;
 
     @Column(name = "description", length = 500)

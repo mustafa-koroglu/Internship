@@ -118,18 +118,15 @@ public class IpAddressController {
     public ResponseEntity<?> validateIpAddress(@RequestParam String ipInput) {
         log.info("IP adresi dogrulanıyor: {}", ipInput);
         try {
-            // IP formatını doğrula
             if (!com.example.backend.utility.IpValidationUtil.isValidIpInput(ipInput)) {
                 return ResponseEntity.badRequest().body("Gecersiz IP formatı");
             }
 
-            // IP'leri parse et
             List<String> ipAddresses = com.example.backend.utility.IpParseUtil.parseIpInput(ipInput);
             if (ipAddresses.isEmpty()) {
                 return ResponseEntity.badRequest().body("IP adresleri parse edilemedi");
             }
 
-            // Duplicate kontrolü
             List<String> duplicates = ipAddresses.stream()
                     .filter(ip -> ipAddressService.existsByIpAddress(ip))
                     .toList();
@@ -138,7 +135,6 @@ public class IpAddressController {
                 return ResponseEntity.badRequest().body("Zaten mevcut IP adresleri: " + String.join(", ", duplicates));
             }
 
-            // IP format tipini belirle
             String inputType = com.example.backend.utility.IpParseUtil.getInputType(ipInput).name();
             String inputTypeDescription = getInputTypeDescription(ipInput);
 
@@ -155,14 +151,24 @@ public class IpAddressController {
         }
     }
 
-    // IP format tipinin Türkçe açıklamasını döndürür
     private String getInputTypeDescription(String ipInput) {
         if (com.example.backend.utility.IpValidationUtil.isValidIpv4(ipInput)) {
-            return "Tekil IP Adresi";
-        } else if (com.example.backend.utility.IpValidationUtil.isValidCidr(ipInput)) {
-            return "CIDR Subnet";
-        } else if (com.example.backend.utility.IpValidationUtil.isValidIpRange(ipInput)) {
-            return "IP Aralığı";
+            return "Tekil IPv4 Adresi";
+        } 
+        else if (com.example.backend.utility.IpValidationUtil.isValidIpv6(ipInput)) {
+            return "Tekil IPv6 Adresi";
+        } 
+        else if (com.example.backend.utility.IpValidationUtil.isValidIpv4Cidr(ipInput)) {
+            return "IPv4 CIDR Subnet";
+        } 
+        else if (com.example.backend.utility.IpValidationUtil.isValidIpv6Cidr(ipInput)) {
+            return "IPv6 CIDR Subnet";
+        } 
+        else if (com.example.backend.utility.IpValidationUtil.isValidIpv4Range(ipInput)) {
+            return "IPv4 Aralığı";
+        } 
+        else if (com.example.backend.utility.IpValidationUtil.isValidIpv6Range(ipInput)) {
+            return "IPv6 Aralığı";
         }
         return "Bilinmeyen Format";
     }

@@ -23,7 +23,6 @@ const IpAddressEditModal = ({ ipAddress, onSubmit, onValidate, onClose }) => {
         description: ipAddress.description || "",
         isActive: ipAddress.isActive,
       });
-      // Mevcut IP adresi geçerli olarak işaretle
       setValidation({
         isValid: true,
         message: "Mevcut IP adresi",
@@ -41,7 +40,6 @@ const IpAddressEditModal = ({ ipAddress, onSubmit, onValidate, onClose }) => {
       [name]: type === "checkbox" ? checked : value,
     }));
 
-    // IP input değiştiğinde backend'e doğrulama isteği gönder
     if (name === "ipInput" && value.trim()) {
       validateIpInput(value);
     } else if (name === "ipInput" && !value.trim()) {
@@ -120,14 +118,11 @@ const IpAddressEditModal = ({ ipAddress, onSubmit, onValidate, onClose }) => {
     }
   };
 
-  if (!ipAddress) return null;
-
   return (
     <div
       className="modal fade show"
       style={{ display: "block", zIndex: 1050 }}
       tabIndex="-1"
-      onClick={onClose}
     >
       <div
         className="modal-dialog modal-lg"
@@ -165,17 +160,27 @@ const IpAddressEditModal = ({ ipAddress, onSubmit, onValidate, onClose }) => {
                     name="ipInput"
                     value={formData.ipInput}
                     onChange={handleInputChange}
-                    placeholder="192.168.1.1 veya 192.168.1.0/24 veya 192.168.1.1-192.168.1.10"
+                    placeholder="192.168.1.1, 2001:db8::1, 192.168.1.0/24, 2001:db8::/32"
                     required
                     disabled={isSubmitting}
                   />
                   <div className="form-text">
                     <strong>Desteklenen formatlar:</strong>
                     <br />
+                    <strong>IPv4:</strong>
+                    <br />
                     • Tekil IP: 192.168.1.1
                     <br />
                     • CIDR: 192.168.1.0/24
-                    <br />• IP Aralığı: 192.168.1.1-192.168.1.10
+                    <br />
+                    • IP Aralığı: 192.168.1.1-192.168.1.10
+                    <br />
+                    <strong>IPv6:</strong>
+                    <br />
+                    • Tekil IP: 2001:db8::1
+                    <br />
+                    • CIDR: 2001:db8::/32
+                    <br />• IP Aralığı: 2001:db8::1-2001:db8::10
                   </div>
                   {isValidating && (
                     <div className="mt-2">
@@ -246,69 +251,32 @@ const IpAddressEditModal = ({ ipAddress, onSubmit, onValidate, onClose }) => {
                     </label>
                   </div>
                   <div className="form-text">
-                    Bu IP adresinin sistemde aktif olup olmadığını belirler
+                    Bu IP adresinin aktif olup olmadığını belirler
                   </div>
                 </div>
 
-                {validation.isValid &&
-                  validation.ips.length > 0 &&
-                  validation.ips.length > 1 && (
-                    <div className="col-12 mb-3">
-                      <label className="form-label">
-                        Eklenecek IP Adresleri ({validation.ipCount})
-                      </label>
-                      <div
-                        className="border rounded p-2 bg-light"
-                        style={{ maxHeight: "200px", overflowY: "auto" }}
-                      >
-                        <div className="row">
-                          {validation.ips.map((ip, index) => (
-                            <div
-                              key={index}
-                              className="col-md-3 col-sm-4 col-6 mb-1"
-                            >
-                              <code className="text-primary">{ip}</code>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                <div className="col-12 mb-3">
-                  <div className="card bg-light">
-                    <div className="card-body">
-                      <h6 className="card-title">Mevcut Bilgiler</h6>
+                {validation.isValid && validation.ips.length > 0 && (
+                  <div className="col-12 mb-3">
+                    <label className="form-label">
+                      Eklenecek IP Adresleri ({validation.ipCount})
+                    </label>
+                    <div
+                      className="border rounded p-2 bg-light"
+                      style={{ maxHeight: "200px", overflowY: "auto" }}
+                    >
                       <div className="row">
-                        <div className="col-md-6">
-                          <strong>ID:</strong> {ipAddress.id}
-                        </div>
-                        <div className="col-md-6">
-                          <strong>Oluşturulma:</strong>{" "}
-                          {new Date(ipAddress.createdAt).toLocaleString(
-                            "tr-TR"
-                          )}
-                        </div>
-                        <div className="col-md-6">
-                          <strong>Güncellenme:</strong>{" "}
-                          {new Date(ipAddress.updatedAt).toLocaleString(
-                            "tr-TR"
-                          )}
-                        </div>
-                        <div className="col-md-6">
-                          <strong>Durum:</strong>
-                          <span
-                            className={`badge ms-1 ${
-                              ipAddress.isActive ? "bg-success" : "bg-secondary"
-                            }`}
+                        {validation.ips.map((ip, index) => (
+                          <div
+                            key={index}
+                            className="col-md-3 col-sm-4 col-6 mb-1"
                           >
-                            {ipAddress.isActive ? "Aktif" : "Pasif"}
-                          </span>
-                        </div>
+                            <code className="text-primary">{ip}</code>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 

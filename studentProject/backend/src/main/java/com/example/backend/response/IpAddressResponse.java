@@ -14,8 +14,8 @@ public class IpAddressResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public IpAddressResponse(Long id, String ipAddress, String description, Boolean isActive, 
-                           LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public IpAddressResponse(Long id, String ipAddress, String description, Boolean isActive,
+                             LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.ipAddress = ipAddress;
         this.description = description;

@@ -10,6 +10,7 @@ Bu proje, modern web teknolojileri kullanılarak geliştirilmiş, mikroservis mi
 - [Kurulum ve Çalıştırma](#kurulum-ve-çalıştırma)
 - [API Dokümantasyonu](#api-dokümantasyonu)
 - [Veritabanı Şeması](#veritabanı-şeması)
+- [IP Adresi Yönetimi](#ip-adresi-yönetimi)
 - [Güvenlik](#güvenlik)
 - [CSV İşleme](#csv-işleme)
 - [Geliştirme Rehberi](#geliştirme-rehberi)
@@ -335,6 +336,56 @@ CREATE TABLE student (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+```
+
+### IpAddress Tablosu
+
+```sql
+CREATE TABLE ip_addresses (
+    id BIGSERIAL PRIMARY KEY,
+    ip_address VARCHAR(45) UNIQUE NOT NULL,
+    description VARCHAR(500),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## 🌐 IP Adresi Yönetimi
+
+### Desteklenen IP Formatları
+
+#### IPv4 Formatları
+- **Tekil IP:** `192.168.1.1`
+- **CIDR Subnet:** `192.168.1.0/24`
+- **IP Aralığı:** `192.168.1.1-192.168.1.10`
+
+#### IPv6 Formatları
+- **Tekil IP:** `2001:db8::1`
+- **CIDR Subnet:** `2001:db8::/32`
+- **IP Aralığı:** `2001:db8::1-2001:db8::10`
+
+### Özellikler
+
+- **Otomatik Doğrulama:** Gerçek zamanlı IP format doğrulama
+- **Çoklu Format Desteği:** IPv4 ve IPv6 formatlarını aynı anda destekler
+- **CIDR Parsing:** Subnet maskelerini otomatik olarak tekil IP'lere çevirir
+- **Range Parsing:** IP aralıklarını otomatik olarak tekil IP'lere çevirir
+- **Duplicate Prevention:** Aynı IP'nin tekrar eklenmesini engeller
+- **Aktif/Pasif Durum:** IP adreslerini aktif veya pasif yapabilme
+- **Arama ve Filtreleme:** IP adreslerinde arama yapabilme
+
+### API Endpoints
+
+```
+GET    /api/v1/ip-addresses          # Tüm aktif IP adreslerini getir
+GET    /api/v1/ip-addresses/all      # Tüm IP adreslerini getir (aktif/pasif)
+GET    /api/v1/ip-addresses/{id}     # Belirli IP adresini getir
+GET    /api/v1/ip-addresses/search   # IP adreslerinde arama yap
+POST   /api/v1/ip-addresses          # Yeni IP adresi ekle
+PUT    /api/v1/ip-addresses/{id}     # IP adresini güncelle
+DELETE /api/v1/ip-addresses/{id}     # IP adresini sil
+GET    /api/v1/ip-addresses/validate # IP formatını doğrula
 ```
 
 ## 🔒 Güvenlik

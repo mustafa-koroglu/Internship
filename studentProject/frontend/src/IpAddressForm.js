@@ -5,6 +5,7 @@ const IpAddressForm = ({ onSubmit, onValidate, onClose }) => {
     ipInput: "",
     description: "",
   });
+  
   const [validation, setValidation] = useState({
     isValid: false,
     message: "",
@@ -12,17 +13,18 @@ const IpAddressForm = ({ onSubmit, onValidate, onClose }) => {
     ips: [],
     inputTypeDescription: "",
   });
+  
   const [isValidating, setIsValidating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
 
-    // IP input değiştiğinde backend'e doğrulama isteği gönder
     if (name === "ipInput" && value.trim()) {
       validateIpInput(value);
     } else if (name === "ipInput" && !value.trim()) {
@@ -40,8 +42,10 @@ const IpAddressForm = ({ onSubmit, onValidate, onClose }) => {
     if (!ipInput.trim()) return;
 
     setIsValidating(true);
+    
     try {
       const result = await onValidate(ipInput);
+      
       if (result.success) {
         setValidation({
           isValid: true,
@@ -81,8 +85,10 @@ const IpAddressForm = ({ onSubmit, onValidate, onClose }) => {
     }
 
     setIsSubmitting(true);
+    
     try {
       const result = await onSubmit(formData.ipInput, formData.description);
+      
       if (result.success) {
         alert("IP adresi başarıyla eklendi!");
         onClose();
@@ -138,17 +144,28 @@ const IpAddressForm = ({ onSubmit, onValidate, onClose }) => {
                     name="ipInput"
                     value={formData.ipInput}
                     onChange={handleInputChange}
-                    placeholder="192.168.1.1 veya 192.168.1.0/24 veya 192.168.1.1-192.168.1.10"
+                    placeholder="192.168.1.1, 2001:db8::1, 192.168.1.0/24, 2001:db8::/32"
                     required
                     disabled={isSubmitting}
                   />
                   <div className="form-text">
                     <strong>Desteklenen formatlar:</strong>
                     <br />
+                    <strong>IPv4:</strong>
+                    <br />
                     • Tekil IP: 192.168.1.1
                     <br />
                     • CIDR: 192.168.1.0/24
-                    <br />• IP Aralığı: 192.168.1.1-192.168.1.10
+                    <br />
+                    • IP Aralığı: 192.168.1.1-192.168.1.10
+                    <br />
+                    <strong>IPv6:</strong>
+                    <br />
+                    • Tekil IP: 2001:db8::1
+                    <br />
+                    • CIDR: 2001:db8::/32
+                    <br />
+                    • IP Aralığı: 2001:db8::1-2001:db8::10
                   </div>
                   {isValidating && (
                     <div className="mt-2">

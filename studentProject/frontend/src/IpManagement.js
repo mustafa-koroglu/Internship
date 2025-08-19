@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import IpAddressList from "./IpAddressList";
 import IpAddressForm from "./IpAddressForm";
 import IpAddressEditModal from "./IpAddressEditModal";
@@ -13,7 +13,6 @@ const IpManagement = ({ role }) => {
 
   const API_BASE_URL = "http://localhost:8080/api/v1/ip-addresses";
 
-  // JWT token'ı al
   const getAuthHeaders = () => {
     const token = localStorage.getItem("token");
     return {
@@ -22,13 +21,14 @@ const IpManagement = ({ role }) => {
     };
   };
 
-  // IP adreslerini getir (tümü - aktif ve pasif)
-  const fetchIpAddresses = async (search = "") => {
+  const fetchIpAddresses = useCallback(async (search = "") => {
     try {
       setLoading(true);
+      
       const url = search
         ? `${API_BASE_URL}/search?q=${encodeURIComponent(search)}`
         : `${API_BASE_URL}/all`;
+      
       const response = await fetch(url, {
         method: "GET",
         headers: getAuthHeaders(),
@@ -47,9 +47,8 @@ const IpManagement = ({ role }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // IP adresi oluştur
   const createIpAddress = async (ipInput, description) => {
     try {
       const response = await fetch(API_BASE_URL, {
@@ -76,7 +75,6 @@ const IpManagement = ({ role }) => {
     }
   };
 
-  // IP adresi güncelle
   const updateIpAddress = async (id, ipInput, description, isActive) => {
     try {
       const response = await fetch(`${API_BASE_URL}/${id}`, {
@@ -104,7 +102,6 @@ const IpManagement = ({ role }) => {
     }
   };
 
-  // IP adresi sil
   const deleteIpAddress = async (id) => {
     if (!window.confirm("Bu IP adresini silmek istediğinizden emin misiniz?")) {
       return;
@@ -127,9 +124,12 @@ const IpManagement = ({ role }) => {
     }
   };
 
-  // IP adresini aktifleştir
   const activateIpAddress = async (id) => {
-    if (!window.confirm("Bu IP adresini aktifleştirmek istediğinizden emin misiniz?")) {
+    if (
+      !window.confirm(
+        "Bu IP adresini aktifleştirmek istediğinizden emin misiniz?"
+      )
+    ) {
       return;
     }
 
@@ -138,10 +138,11 @@ const IpManagement = ({ role }) => {
         method: "PUT",
         headers: getAuthHeaders(),
         body: JSON.stringify({
-          ipInput: ipAddresses.find(ip => ip.id === id)?.ipAddress || "",
-          description: ipAddresses.find(ip => ip.id === id)?.description || "",
-          isActive: true
-        })
+          ipInput: ipAddresses.find((ip) => ip.id === id)?.ipAddress || "",
+          description:
+            ipAddresses.find((ip) => ip.id === id)?.description || "",
+          isActive: true,
+        }),
       });
 
       if (!response.ok) {
@@ -156,7 +157,6 @@ const IpManagement = ({ role }) => {
     }
   };
 
-  // IP adresi doğrula
   const validateIpAddress = async (ipInput) => {
     try {
       const response = await fetch(
@@ -179,30 +179,26 @@ const IpManagement = ({ role }) => {
     }
   };
 
-  // Arama işlemi (öğrenci listesi gibi)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchIpAddresses(searchTerm);
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm]);
+  }, [searchTerm, fetchIpAddresses]);
 
-  // Düzenleme modal'ını aç
   const handleEdit = (ipAddress) => {
     setEditingIp(ipAddress);
   };
 
-  // Düzenleme modal'ını kapat
   const handleCloseEdit = () => {
     setEditingIp(null);
   };
 
   useEffect(() => {
     fetchIpAddresses();
-  }, []);
+  }, [fetchIpAddresses]);
 
-  // Modal açıkken body scroll'unu engelle
   useEffect(() => {
     if (showForm || editingIp) {
       document.body.style.overflow = "hidden";
@@ -227,7 +223,7 @@ const IpManagement = ({ role }) => {
 
   return (
     <div className="container mt-4">
-      <h2 className="mb-4">IP Adresi Yönetimi</h2>
+      <h2 className="mb-4">IP Adresi Yönetimi (IPv4 & IPv6)</h2>
 
       {error && (
         <div

@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class IpAddressManager implements IpAddressService {
-
     private final IpAddressRepository ipAddressRepository;
 
     @Override
@@ -30,7 +29,6 @@ public class IpAddressManager implements IpAddressService {
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
-
     @Override
     public List<IpAddressResponse> findAll() {
         log.info("Tum IP adresleri (aktif ve pasif) getiriliyor...");
@@ -62,28 +60,23 @@ public class IpAddressManager implements IpAddressService {
     public IpAddressResponse create(String ipInput, String description) {
         log.info("IP adresi olusturuluyor: {}", ipInput);
 
-        // IP formatını doğrula
         if (!IpValidationUtil.isValidIpInput(ipInput)) {
             throw new IllegalArgumentException("Gecersiz IP formatı: " + ipInput);
         }
 
-        // IP'leri parse et
         List<String> ipAddresses = IpParseUtil.parseIpInput(ipInput);
         if (ipAddresses.isEmpty()) {
             throw new IllegalArgumentException("IP adresleri parse edilemedi: " + ipInput);
         }
 
-        // Duplicate kontrolü yap
         for (String ip : ipAddresses) {
             if (ipAddressRepository.existsByIpAddress(ip)) {
                 throw new IllegalArgumentException("IP adresi zaten mevcut: " + ip);
             }
         }
 
-        // Açıklama oluştur
         String finalDescription = description != null ? description : IpParseUtil.generateDescription(ipInput);
 
-        // Her IP için kayıt oluştur
         IpAddress firstIp = null;
         for (String ip : ipAddresses) {
             IpAddress ipAddress = new IpAddress(ip, finalDescription);
@@ -106,13 +99,11 @@ public class IpAddressManager implements IpAddressService {
         IpAddress ipAddress = ipAddressRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("IP adresi bulunamadi: " + id));
 
-        // Eğer IP adresi değiştirilecekse doğrulama yap
         if (ipInput != null && !ipInput.equals(ipAddress.getIpAddress())) {
             if (!IpValidationUtil.isValidIpInput(ipInput)) {
                 throw new IllegalArgumentException("Gecersiz IP formatı: " + ipInput);
             }
 
-            // Yeni IP adresi zaten var mı kontrol et
             if (ipAddressRepository.existsByIpAddress(ipInput)) {
                 throw new IllegalArgumentException("IP adresi zaten mevcut: " + ipInput);
             }

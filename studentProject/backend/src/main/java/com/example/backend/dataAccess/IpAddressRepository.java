@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+// Liste ve Optional sınıfları için import
 import java.util.List;
 import java.util.Optional;
 
@@ -19,7 +20,7 @@ public interface IpAddressRepository extends JpaRepository<IpAddress, Long> {
     List<IpAddress> findByIsActiveTrue();
 
     @Query("SELECT ip FROM IpAddress ip WHERE ip.isActive = true AND " +
-           "(ip.ipAddress LIKE %:searchTerm% OR ip.description LIKE %:searchTerm%)")
+            "(ip.ipAddress LIKE %:searchTerm% OR ip.description LIKE %:searchTerm%)")
     List<IpAddress> searchActiveIpAddresses(@Param("searchTerm") String searchTerm);
 
     @Query("SELECT ip FROM IpAddress ip WHERE ip.isActive = true ORDER BY ip.createdAt DESC")
