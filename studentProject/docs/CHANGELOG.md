@@ -1,186 +1,212 @@
-# Changelog
+# 📝 Changelog
 
-Bu dosya, Öğrenci Yönetim Sistemi'nde yapılan tüm önemli değişiklikleri kaydeder.
-
-Bu proje [Semantic Versioning](https://semver.org/lang/tr/) kurallarına uyar.
+Bu dosya, Öğrenci Yönetim Sistemi projesinin tüm önemli değişikliklerini içerir.
 
 ## [Unreleased]
 
-### Added
+### 🚀 Yeni Özellikler
+- [ ] Kullanıcı profil yönetimi
+- [ ] Gelişmiş raporlama sistemi
+- [ ] Email bildirimleri
+- [ ] Mobil uygulama desteği
 
-- Kapsamlı dokümantasyon eklendi
-- API dokümantasyonu oluşturuldu
-- Dağıtım rehberi eklendi
-- Geliştirme rehberi eklendi
-- **Öğrenci onay sistemi eklendi**
-  - `verified` ve `view` boolean alanları eklendi
-  - CSV'den okunan öğrenciler otomatik olarak onaylanmamış ve gizli olarak işaretlenir
-  - Manuel eklenen öğrenciler otomatik onaylanır ve görünür olur
-  - Admin onaylama ve görünürlük kontrolü özellikleri
-  - Kullanıcılar sadece onaylanmış ve görünür öğrencileri görebilir
-  - Yeni API endpoint'leri: `/students/verified`, `/students/unverified`, `/students/{id}/approve`, `/students/{id}/visibility`
+### 🔧 İyileştirmeler
+- [ ] Performans optimizasyonları
+- [ ] UI/UX iyileştirmeleri
+- [ ] Kod refactoring
 
-### Changed
+### 🐛 Hata Düzeltmeleri
+- [ ] Bilinen hataların düzeltilmesi
 
-- README.md dosyası güncellendi ve genişletildi
-- Student entity'sine `verified` ve `view` alanları eklendi
-- StudentResponse, CreateStudentRequest, UpdateStudentRequest DTO'ları güncellendi
-- StudentsRepository'ye yeni sorgu metodları eklendi
-- StudentService interface'i genişletildi
-- StudentManager'a yeni iş mantığı metodları eklendi
-- StudentController'a yeni endpoint'ler eklendi
-- CsvProcessingService'te CSV'den okunan öğrenciler onaylanmamış olarak işaretlenir
-- Frontend StudentList bileşeni güncellendi
-  - Admin ve user için farklı görünümler
-  - Onaylama ve görünürlük kontrol butonları
-  - Farklı endpoint'ler kullanımı
+## [1.0.0] - 2024-01-15
 
-## [1.0.0] - 2024-01-01
+### 🎉 İlk Sürüm
 
-### Added
+#### 🚀 Yeni Özellikler
+- ✅ **Öğrenci Yönetimi**
+  - Öğrenci kayıt ve güncelleme sistemi
+  - Öğrenci listesi görüntüleme
+  - Arama ve filtreleme özellikleri
+  - Öğrenci onaylama sistemi
+  - CSV dosyalarından toplu veri yükleme
 
-- İlk sürüm yayınlandı
-- Spring Boot backend uygulaması
-- React frontend uygulaması
-- PostgreSQL veritabanı entegrasyonu
-- JWT tabanlı kimlik doğrulama
+- ✅ **Ders Yönetimi**
+  - Ders ekleme ve düzenleme
+  - Öğrenci-ders ilişkilendirme
+  - Ders listesi yönetimi
+
+- ✅ **IP Adresi Yönetimi**
+  - IPv4/IPv6 adresi desteği
+  - CIDR subnet yönetimi
+  - IP aralığı tanımlama
+  - Otomatik IP atama
+  - Öğrenci-IP ilişkilendirme
+  - Network/broadcast adresi kontrolü
+
+- ✅ **Güvenlik Sistemi**
+  - JWT tabanlı kimlik doğrulama
+  - Role-based access control (ADMIN/USER)
+  - Güvenli şifre hashleme (BCrypt)
+  - CORS yapılandırması
+
+- ✅ **CSV İşleme**
+  - Otomatik CSV dosya izleme (30 saniyede bir)
+  - Toplu veri yükleme
+  - Hata raporlama (.fail/.done uzantıları)
+  - Virtual thread ile yüksek performans
+
+#### 🏗️ Mimari
+- ✅ **Mikroservis Mimarisi**
+  - Spring Boot Backend (Port: 8080)
+  - React Frontend (Port: 3000)
+  - Spring Cloud Config Server (Port: 8888)
+  - PostgreSQL Veritabanı
+
+#### 🛠️ Teknolojiler
+- ✅ **Backend Stack**
+  - Java 21
+  - Spring Boot 3.3.0
+  - Spring Security
+  - Spring Data JPA
+  - Spring Cloud Config
+  - PostgreSQL
+  - JWT (JSON Web Tokens)
+  - OpenCSV 5.8
+  - Virtual Threads
+  - Maven
+
+- ✅ **Frontend Stack**
+  - React 18.2.0
+  - React Router DOM 6.20.1
+  - Bootstrap 5.3.7
+  - JavaScript ES6+
+
+#### 📊 Veritabanı
+- ✅ **Tablolar**
+  - `app_user` - Kullanıcı bilgileri
+  - `student` - Öğrenci bilgileri
+  - `lesson` - Ders bilgileri
+  - `ip_addresses` - IP adresi bilgileri
+  - `file` - Dosya işleme kayıtları
+
+#### 🔐 Güvenlik
+- ✅ **Kimlik Doğrulama**
+  - JWT token tabanlı authentication
+  - Role-based authorization
+  - Secure password hashing
+  - CORS configuration
+
+#### 📈 Performans
+- ✅ **Optimizasyonlar**
+  - Virtual thread executor
+  - Stream API kullanımı
+  - Optimize edilmiş IP validasyon
+  - Asenkron CSV işleme
+
+## [0.9.0] - 2024-01-10
+
+### 🚀 Beta Sürüm
+
+#### ✅ Tamamlanan Özellikler
+- Temel öğrenci yönetimi
+- Basit kullanıcı arayüzü
+- Veritabanı entegrasyonu
+- API endpoint'leri
+
+#### 🔧 Geliştirmeler
+- Kod optimizasyonu
+- Hata düzeltmeleri
+- Dokümantasyon güncellemeleri
+
+## [0.8.0] - 2024-01-05
+
+### 🚀 Alpha Sürüm
+
+#### ✅ Temel Özellikler
 - Öğrenci CRUD işlemleri
-- CSV dosya yükleme ve işleme
-- Arama ve filtreleme özellikleri
-- Responsive web tasarımı
-- Bootstrap UI framework entegrasyonu
-- Spring Cloud Config Server
-- Global exception handling
-- CORS yapılandırması
-- Lombok entegrasyonu
-- OpenCSV kütüphanesi entegrasyonu
+- Basit authentication
+- Frontend temel yapısı
 
-### Features
+#### 🔧 İyileştirmeler
+- Kod temizliği
+- Performans optimizasyonları
 
-- **Backend API Endpoints:**
+## [0.7.0] - 2024-01-01
 
-  - `POST /api/v1/auth/register` - Kullanıcı kaydı
-  - `POST /api/v1/auth/login` - Kullanıcı girişi
-  - `GET /api/v3/students` - Öğrenci listesi
-  - `GET /api/v3/students/{id}` - Öğrenci detayı
-  - `POST /api/v3/students` - Yeni öğrenci ekleme
-  - `PUT /api/v3/students/{id}` - Öğrenci güncelleme
-  - `DELETE /api/v3/students/{id}` - Öğrenci silme
-  - `GET /api/v3/students/search` - Öğrenci arama
-  - `POST /api/v3/csv/upload` - CSV dosya yükleme
+### 🚀 İlk Geliştirme Sürümü
 
-- **Frontend Components:**
-
-  - Login sayfası
-  - Öğrenci listesi
-  - Öğrenci ekleme/düzenleme formu
-  - Arama ve filtreleme
-  - Responsive navbar
-  - Modal tabanlı formlar
-
-- **Database Schema:**
-  - `app_user` tablosu (kullanıcı yönetimi)
-  - `student` tablosu (öğrenci verileri)
-
-### Technical Stack
-
-- **Backend:** Java 21, Spring Boot 3.3.0, Spring Security, Spring Data JPA
-- **Frontend:** React 19.1.0, Bootstrap 5.3.7, React Router DOM 7.6.3
-- **Database:** PostgreSQL 15
-- **Build Tools:** Maven, npm
-- **Authentication:** JWT (JSON Web Tokens)
-- **CSV Processing:** OpenCSV 5.8
-
-### Security Features
-
-- JWT tabanlı kimlik doğrulama
-- Şifre hashleme (BCrypt)
-- CORS yapılandırması
-- Input validation
-- SQL injection koruması
-
-### Performance Features
-
-- Sayfalama (pagination)
-- Veritabanı indeksleri
-- Connection pooling
-- Optimized queries
+#### ✅ Başlangıç
+- Proje yapısı oluşturuldu
+- Temel Spring Boot uygulaması
+- React frontend başlangıcı
+- Veritabanı şeması
 
 ---
 
-## Sürüm Numaralandırma
+## 📋 Sürüm Numaralandırma
 
-Bu proje [Semantic Versioning](https://semver.org/lang/tr/) (SemVer) kurallarına uyar.
+Bu proje [Semantic Versioning](https://semver.org/) kullanır:
 
-### Format: MAJOR.MINOR.PATCH
+- **MAJOR.MINOR.PATCH**
+  - **MAJOR:** Uyumsuz API değişiklikleri
+  - **MINOR:** Geriye uyumlu yeni özellikler
+  - **PATCH:** Geriye uyumlu hata düzeltmeleri
 
-- **MAJOR:** Uyumsuz API değişiklikleri
-- **MINOR:** Geriye uyumlu yeni özellikler
-- **PATCH:** Geriye uyumlu hata düzeltmeleri
+## 🔄 Güncelleme Süreci
 
-### Örnekler:
+### Yeni Sürüm Yayınlama
 
-- `1.0.0` - İlk kararlı sürüm
-- `1.1.0` - Yeni özellikler eklendi
-- `1.1.1` - Hata düzeltmeleri
-- `2.0.0` - Büyük değişiklikler (uyumsuz)
+1. **Geliştirme**
+   - Feature branch'lerde geliştirme
+   - Code review süreci
+   - Test coverage
 
-## Değişiklik Türleri
+2. **Test**
+   - Unit testler
+   - Integration testler
+   - UI testler
+   - Performance testler
 
-### Added
+3. **Release**
+   - Version bump
+   - Changelog güncelleme
+   - Tag oluşturma
+   - Release notes
 
-Yeni özellikler eklendi.
+4. **Deployment**
+   - Production deployment
+   - Monitoring
+   - Backup
 
-### Changed
+## 📊 Sürüm Geçmişi Özeti
 
-Mevcut işlevsellikte değişiklikler yapıldı.
+| Sürüm | Tarih | Durum | Ana Özellikler |
+|-------|-------|-------|----------------|
+| 1.0.0 | 2024-01-15 | ✅ Stable | Tam özellikli sistem |
+| 0.9.0 | 2024-01-10 | ✅ Beta | Temel özellikler |
+| 0.8.0 | 2024-01-05 | ✅ Alpha | CRUD işlemleri |
+| 0.7.0 | 2024-01-01 | ✅ Dev | Proje başlangıcı |
 
-### Deprecated
+## 🎯 Gelecek Planları
 
-Yakında kaldırılacak özellikler işaretlendi.
+### Kısa Vadeli (1-3 ay)
+- [ ] Kullanıcı profil yönetimi
+- [ ] Gelişmiş raporlama
+- [ ] Email bildirimleri
+- [ ] API rate limiting
 
-### Removed
+### Orta Vadeli (3-6 ay)
+- [ ] Mobil uygulama
+- [ ] Real-time notifications
+- [ ] Advanced analytics
+- [ ] Multi-language support
 
-Kaldırılan özellikler.
-
-### Fixed
-
-Hata düzeltmeleri.
-
-### Security
-
-Güvenlik açıkları düzeltildi.
-
-## Katkıda Bulunma
-
-Yeni değişiklikler eklerken:
-
-1. Uygun değişiklik türünü seçin
-2. Açık ve anlaşılır açıklamalar yazın
-3. Breaking changes için detaylı açıklama ekleyin
-4. Tarih formatını koruyun (YYYY-MM-DD)
-
-### Örnek Giriş:
-
-```markdown
-## [1.2.0] - 2024-02-15
-
-### Added
-
-- Yeni öğrenci raporlama özelliği
-- Excel export fonksiyonu
-
-### Changed
-
-- Arama algoritması iyileştirildi
-- UI performansı artırıldı
-
-### Fixed
-
-- Login sayfasında CSS hatası düzeltildi
-- Database connection timeout sorunu çözüldü
-```
+### Uzun Vadeli (6+ ay)
+- [ ] Microservices architecture
+- [ ] Cloud deployment
+- [ ] AI-powered features
+- [ ] Third-party integrations
 
 ---
 
-**Not:** Bu changelog, projenin gelişim sürecini takip etmek için kullanılır. Tüm önemli değişiklikler burada belgelenmelidir.
+**Not:** Bu changelog sürekli güncellenmektedir. En güncel bilgiler için GitHub repository'sini kontrol edin.

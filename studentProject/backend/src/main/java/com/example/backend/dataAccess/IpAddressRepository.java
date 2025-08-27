@@ -28,4 +28,12 @@ public interface IpAddressRepository extends JpaRepository<IpAddress, Long> {
 
     @Query("SELECT ip FROM IpAddress ip ORDER BY ip.createdAt DESC")
     List<IpAddress> findAllByOrderByCreatedAtDesc();
+
+    List<IpAddress> findByStudentId(Integer studentId);
+
+    List<IpAddress> findByStudentIsNull();
+    
+    int countByIpAddressAndStudentIsNotNull(String ipAddress);
+    
+    boolean existsByIpAddressAndStudentIsNotNull(String ipAddress);
 }

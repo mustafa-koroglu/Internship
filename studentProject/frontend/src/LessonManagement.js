@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import { apiGet, apiPost, apiPut, apiDelete } from "./utils/api";
+import { useNotification } from "./hooks/useNotification";
 
 function LessonManagement({ role }) {
   const [lessons, setLessons] = useState([]);
-  const [error, setError] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [editId, setEditId] = useState(null);
   const [newLesson, setNewLesson] = useState({
@@ -18,147 +19,144 @@ function LessonManagement({ role }) {
     term: "",
   });
 
-  const token = localStorage.getItem("token");
+  const { message, type, setMessage, showSuccess, showError } =
+    useNotification();
 
-  function showError(msg) {
-    setError(msg);
-    setTimeout(() => setError(""), 3000);
-  }
+  // Dersleri çek
+  const fetchLessons = useCallback(async () => {
+    try {
+      const data = await apiGet("/lessons");
+      setLessons(data);
+    } catch (err) {
+      showError(err.message);
+    }
+  }, [showError]);
 
-  function showSuccess(msg) {
-    setError("");
-    setTimeout(() => {
-      setError(msg);
-      setTimeout(() => setError(""), 3000);
-    }, 100);
-  }
-
-  function fetchLessons() {
-    fetch("http://localhost:8080/api/lessons", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.message || "Veri çekme başarısız!");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setLessons(data);
-      })
-      .catch((err) => showError(err.message));
-  }
-
-  function handleAddSubmit(e) {
-    e.preventDefault();
-    fetch("http://localhost:8080/api/lessons", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(newLesson),
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.message || "Ekleme başarısız!");
-        }
-        return res.json();
-      })
-      .then((data) => {
+  // Yeni ders ekle
+  const handleAddSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      try {
+        const data = await apiPost("/lessons", newLesson);
         setLessons((prev) => [...prev, data]);
         setShowAddForm(false);
         setNewLesson({ name: "", description: "", academicYear: "", term: "" });
         showSuccess("Ders başarıyla eklendi!");
-      })
-      .catch((err) => showError(err.message));
-  }
+      } catch (err) {
+        showError(err.message);
+      }
+    },
+    [newLesson, showSuccess, showError]
+  );
 
-  function handleEditSubmit(e, id) {
-    e.preventDefault();
-    fetch(`http://localhost:8080/api/lessons/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(editLesson),
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.message || "Güncelleme başarısız!");
-        }
-        return res.json();
-      })
-      .then((data) => {
+  // Ders güncelle
+  const handleEditSubmit = useCallback(
+    async (e, id) => {
+      e.preventDefault();
+      try {
+        const data = await apiPut(`/lessons/${id}`, editLesson);
         setLessons((prev) => prev.map((l) => (l.id === id ? data : l)));
         setEditId(null);
+        setEditLesson({
+          name: "",
+          description: "",
+          academicYear: "",
+          term: "",
+        });
         showSuccess("Ders başarıyla güncellendi!");
-      })
-      .catch((err) => showError(err.message));
-  }
+      } catch (err) {
+        showError(err.message);
+      }
+    },
+    [editLesson, showSuccess, showError]
+  );
 
-  function handleDelete(id) {
-    if (!window.confirm("Bu dersi silmek istediğinizden emin misiniz?")) {
-      return;
-    }
+  // Ders sil
+  const handleDelete = useCallback(
+    async (id) => {
+      if (!window.confirm("Bu dersi silmek istediğinizden emin misiniz?"))
+        return;
 
-    fetch(`http://localhost:8080/api/lessons/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.message || "Silme başarısız!");
-        }
-      })
-      .then(() => {
+      try {
+        await apiDelete(`/lessons/${id}`);
         setLessons((prev) => prev.filter((l) => l.id !== id));
         showSuccess("Ders başarıyla silindi!");
-      })
-      .catch((err) => showError(err.message));
-  }
+      } catch (err) {
+        showError(err.message);
+      }
+    },
+    [showSuccess, showError]
+  );
 
-  useEffect(() => {
-    fetchLessons();
+  // Düzenleme modunu aç
+  const handleEdit = useCallback((lesson) => {
+    setEditId(lesson.id);
+    setEditLesson({
+      name: lesson.name,
+      description: lesson.description,
+      academicYear: lesson.academicYear,
+      term: lesson.term,
+    });
   }, []);
 
-  if (role !== "ADMIN") {
+  // Düzenleme modunu kapat
+  const handleCancelEdit = useCallback(() => {
+    setEditId(null);
+    setEditLesson({
+      name: "",
+      description: "",
+      academicYear: "",
+      term: "",
+    });
+  }, []);
+
+  // Input değişiklikleri
+  const handleInputChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setNewLesson((prev) => ({ ...prev, [name]: value }));
+  }, []);
+
+  const handleEditInputChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setEditLesson((prev) => ({ ...prev, [name]: value }));
+  }, []);
+
+  // Component mount olduğunda dersleri çek
+  useEffect(() => {
+    fetchLessons();
+  }, [fetchLessons]);
+
+  // Bildirim göster
+  const renderNotification = () => {
+    if (!message) return null;
+
+    const alertClass =
+      type === "success"
+        ? "alert-success"
+        : type === "error"
+        ? "alert-danger"
+        : "alert-info";
+
     return (
-      <div className="container mt-5 text-center">
-        <h2>Erişim Reddedildi</h2>
-        <p>Bu sayfaya erişim yetkiniz bulunmamaktadır.</p>
+      <div
+        className={`alert ${alertClass} alert-dismissible fade show`}
+        role="alert"
+      >
+        {message}
+        <button
+          type="button"
+          className="btn-close"
+          onClick={() => setMessage("")}
+        ></button>
       </div>
     );
-  }
+  };
 
   return (
     <div className="container mt-4">
-      <h2 className="mb-4">Ders Yönetimi</h2>
+      {renderNotification()}
 
-      {error && (
-        <div
-          className={`alert ${
-            error.includes("başarıyla") ? "alert-success" : "alert-danger"
-          } alert-dismissible fade show`}
-          role="alert"
-        >
-          {error}
-          <button
-            type="button"
-            className="btn-close"
-            onClick={() => setError("")}
-          ></button>
-        </div>
-      )}
+      <h2 className="mb-4">Ders Yönetimi</h2>
 
       <div className="row mb-3">
         <div className="col-md-6">
@@ -182,10 +180,9 @@ function LessonManagement({ role }) {
               <input
                 className="form-control"
                 placeholder="Ders Adı"
+                name="name"
                 value={newLesson.name}
-                onChange={(e) =>
-                  setNewLesson({ ...newLesson, name: e.target.value })
-                }
+                onChange={handleInputChange}
                 required
               />
             </div>
@@ -193,30 +190,27 @@ function LessonManagement({ role }) {
               <input
                 className="form-control"
                 placeholder="Açıklama"
+                name="description"
                 value={newLesson.description}
-                onChange={(e) =>
-                  setNewLesson({ ...newLesson, description: e.target.value })
-                }
+                onChange={handleInputChange}
               />
             </div>
             <div className="col-md-6">
               <input
                 className="form-control"
                 placeholder="Akademik Yıl (örn: 2023-2024)"
+                name="academicYear"
                 value={newLesson.academicYear}
-                onChange={(e) =>
-                  setNewLesson({ ...newLesson, academicYear: e.target.value })
-                }
+                onChange={handleInputChange}
                 required
               />
             </div>
             <div className="col-md-6">
               <select
                 className="form-control"
+                name="term"
                 value={newLesson.term}
-                onChange={(e) =>
-                  setNewLesson({ ...newLesson, term: e.target.value })
-                }
+                onChange={handleInputChange}
                 required
               >
                 <option value="">Dönem Seçin</option>
@@ -265,43 +259,33 @@ function LessonManagement({ role }) {
                     <td>
                       <input
                         className="form-control"
+                        name="name"
                         value={editLesson.name}
-                        onChange={(e) =>
-                          setEditLesson({ ...editLesson, name: e.target.value })
-                        }
+                        onChange={handleEditInputChange}
                       />
                     </td>
                     <td>
                       <input
                         className="form-control"
+                        name="description"
                         value={editLesson.description}
-                        onChange={(e) =>
-                          setEditLesson({
-                            ...editLesson,
-                            description: e.target.value,
-                          })
-                        }
+                        onChange={handleEditInputChange}
                       />
                     </td>
                     <td>
                       <input
                         className="form-control"
+                        name="academicYear"
                         value={editLesson.academicYear}
-                        onChange={(e) =>
-                          setEditLesson({
-                            ...editLesson,
-                            academicYear: e.target.value,
-                          })
-                        }
+                        onChange={handleEditInputChange}
                       />
                     </td>
                     <td>
                       <select
                         className="form-control"
+                        name="term"
                         value={editLesson.term}
-                        onChange={(e) =>
-                          setEditLesson({ ...editLesson, term: e.target.value })
-                        }
+                        onChange={handleEditInputChange}
                       >
                         <option value="Güz">Güz</option>
                         <option value="Bahar">Bahar</option>
@@ -332,15 +316,7 @@ function LessonManagement({ role }) {
                     <td className="text-center">
                       <button
                         className="btn btn-primary btn-sm me-2"
-                        onClick={() => {
-                          setEditId(lesson.id);
-                          setEditLesson({
-                            name: lesson.name,
-                            description: lesson.description,
-                            academicYear: lesson.academicYear,
-                            term: lesson.term,
-                          });
-                        }}
+                        onClick={() => handleEdit(lesson)}
                       >
                         Düzenle
                       </button>

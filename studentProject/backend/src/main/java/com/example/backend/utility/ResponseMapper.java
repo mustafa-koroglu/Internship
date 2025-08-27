@@ -3,6 +3,7 @@ package com.example.backend.utility; // Utility paketi
 import com.example.backend.entities.Student; // Öğrenci entity'si
 import com.example.backend.response.StudentResponse; // Öğrenci yanıt DTO'su
 import com.example.backend.response.LessonResponse; // Ders yanıt DTO'su
+import com.example.backend.response.IpAddressResponse; // IP adresi yanıt DTO'su
 
 import java.util.stream.Collectors;
 
@@ -30,6 +31,22 @@ public class ResponseMapper { // Yanıt dönüştürücü sınıfı
                             lesson.getDescription(),
                             lesson.getAcademicYear(),
                             lesson.getTerm()
+                    ))
+                    .collect(Collectors.toList()));
+        }
+        
+        // Öğrencinin IP adreslerini dönüştür
+        if (student.getIpAddresses() != null) {
+            response.setIpAddresses(student.getIpAddresses().stream()
+                    .map(ipAddress -> new IpAddressResponse(
+                            ipAddress.getId(),
+                            ipAddress.getIpAddress(),
+                            ipAddress.getDescription(),
+                            ipAddress.getIsActive(),
+                            ipAddress.getCreatedAt(),
+                            ipAddress.getUpdatedAt(),
+                            ipAddress.getStudent() != null, // Öğrenciye atanmış olup olmadığını kontrol et
+                            0 // assignedCount - bu utility'de hesaplanmıyor, 0 olarak bırakılıyor
                     ))
                     .collect(Collectors.toList()));
         }

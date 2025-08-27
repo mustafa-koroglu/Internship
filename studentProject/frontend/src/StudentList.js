@@ -1,10 +1,12 @@
 // Öğrenci listesi ve işlemlerini yöneten ana bileşen
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import AssignLessonModal from "./AssignLessonModal";
+import AssignIpAddressModal from "./AssignIpAddressModal";
+import { studentApi } from "./utils/api";
+import { useNotification } from "./hooks/useNotification";
 
 function StudentList({ role }) {
   const [students, setStudents] = useState([]);
-  const [error, setError] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [newStudent, setNewStudent] = useState({
     name: "",
@@ -13,8 +15,10 @@ function StudentList({ role }) {
   });
   const [search, setSearch] = useState("");
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showAssignIpModal, setShowAssignIpModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [expandedStudents, setExpandedStudents] = useState(new Set());
+  const [expandedIpStudents, setExpandedIpStudents] = useState(new Set());
   const [editingStudent, setEditingStudent] = useState(null);
   const [editForm, setEditForm] = useState({
     name: "",
@@ -26,153 +30,92 @@ function StudentList({ role }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
 
-  const token = localStorage.getItem("token");
   const isAdmin = role === "ADMIN";
-
-  // Hata mesajını göster
-  function showError(msg) {
-    setError(msg);
-    setTimeout(() => setError(""), 3000);
-  }
-
-  // Başarı mesajını göster
-  function showSuccess(msg) {
-    setError("");
-    setTimeout(() => {
-      setError(msg);
-      setTimeout(() => setError(""), 3000);
-    }, 100);
-  }
+  const { message, type, setMessage, showSuccess, showError } =
+    useNotification();
 
   // Öğrenci listesini çek
-  function fetchStudents() {
-    const endpoint = isAdmin ? "/students" : "/students/verified";
-    const url = `http://localhost:8080/api/v3${endpoint}`;
-
-    fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.message || "Veri çekme başarısız!");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setStudents(data);
-      })
-      .catch((err) => showError(err.message));
-  }
+  const fetchStudents = useCallback(async () => {
+    try {
+      const data = await studentApi.getAll(isAdmin);
+      setStudents(data);
+    } catch (err) {
+      showError(err.message);
+    }
+  }, [isAdmin, showError]);
 
   // Arama işlemi
-  function handleSearch() {
-    if (!search.trim()) {
-      fetchStudents();
-      return;
-    }
-
-    const endpoint = isAdmin ? "/students/search" : "/students/verified/search";
-
-    fetch(
-      `http://localhost:8080/api/v3${endpoint}?q=${encodeURIComponent(search)}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+  const handleSearch = useCallback(async () => {
+    try {
+      if (!search.trim()) {
+        await fetchStudents();
+        return;
       }
-    )
-      .then(async (res) => {
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.message || "Arama başarısız!");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setStudents(data);
-      })
-      .catch((err) => showError(err.message));
-  }
+      const data = await studentApi.search(search, isAdmin);
+      setStudents(data);
+    } catch (err) {
+      showError(err.message);
+    }
+  }, [search, isAdmin, fetchStudents, showError]);
 
   // Öğrenci onayla
-  function handleApprove(id) {
-    fetch(`http://localhost:8080/api/v3/students/${id}/approve`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.message || "Onaylama başarısız!");
-        }
-        return res.json();
-      })
-      .then(() => {
+  const handleApprove = useCallback(
+    async (id) => {
+      try {
+        await studentApi.approve(id);
         showSuccess("Öğrenci başarıyla onaylandı!");
-        fetchStudents();
-      })
-      .catch((err) => showError(err.message));
-  }
+        // Sadece ilgili öğrenciyi güncelle
+        setStudents((prevStudents) =>
+          prevStudents.map((student) =>
+            student.id === id ? { ...student, verified: true } : student
+          )
+        );
+      } catch (err) {
+        showError(err.message);
+      }
+    },
+    [showSuccess, showError]
+  );
 
   // Görünürlük kontrolü
-  function handleToggleVisibility(id, currentView) {
-    fetch(
-      `http://localhost:8080/api/v3/students/${id}/visibility?view=${(!currentView).toString()}`,
-      {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
-      .then(async (res) => {
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.message || "Görünürlük değiştirme başarısız!");
-        }
-        return res.json();
-      })
-      .then(() => {
+  const handleToggleVisibility = useCallback(
+    async (id, currentView) => {
+      try {
+        await studentApi.toggleVisibility(id, (!currentView).toString());
         showSuccess("Görünürlük başarıyla değiştirildi!");
-        fetchStudents();
-      })
-      .catch((err) => showError(err.message));
-  }
+        // Sadece ilgili öğrenciyi güncelle
+        setStudents((prevStudents) =>
+          prevStudents.map((student) =>
+            student.id === id ? { ...student, view: !currentView } : student
+          )
+        );
+      } catch (err) {
+        showError(err.message);
+      }
+    },
+    [showSuccess, showError]
+  );
 
   // Yeni öğrenci ekle
-  function handleAddSubmit(e) {
-    e.preventDefault();
-    fetch("http://localhost:8080/api/v3/students", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(newStudent),
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.message || "Ekleme başarısız!");
-        }
-        return res.json();
-      })
-      .then(() => {
+  const handleAddSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      try {
+        const newStudentData = await studentApi.create(newStudent);
         showSuccess("Öğrenci başarıyla eklendi!");
         setNewStudent({ name: "", surname: "", number: "" });
         setShowAddForm(false);
-        fetchStudents();
-      })
-      .catch((err) => showError(err.message));
-  }
+        // Yeni öğrenciyi listeye ekle
+        setStudents((prevStudents) => [...prevStudents, newStudentData]);
+      } catch (err) {
+        showError(err.message);
+      }
+    },
+    [newStudent, showSuccess, showError]
+  );
 
   // Öğrenci düzenle
-  function handleEditStudent(student) {
+  const handleEditStudent = useCallback((student) => {
     setEditingStudent(student);
     setEditForm({
       name: student.name,
@@ -181,11 +124,24 @@ function StudentList({ role }) {
       verified: student.verified,
       view: student.view,
     });
-    setIsEditing(false);
-  }
+    setIsEditing(true);
+
+    // Edit modal'ı açıldığında sayfanın yukarı çıkmasını engelle
+    // Modal'ın görünür olması için kısa bir gecikme ile scroll yap
+    setTimeout(() => {
+      const editModal = document.querySelector(".card.border-primary");
+      if (editModal) {
+        editModal.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "nearest",
+        });
+      }
+    }, 100);
+  }, []);
 
   // Edit panelini kapat
-  function handleCloseEdit() {
+  const handleCloseEdit = useCallback(() => {
     setEditingStudent(null);
     setEditForm({
       name: "",
@@ -195,76 +151,78 @@ function StudentList({ role }) {
       view: false,
     });
     setIsEditing(false);
-  }
+  }, []);
 
-  // Edit formunu güncelle
-  function handleEditUpdate(e) {
-    e.preventDefault();
+  // Öğrenci güncelle
+  const handleUpdateStudent = useCallback(async () => {
+    if (!editingStudent) return;
+
     setEditLoading(true);
-
-    fetch(`http://localhost:8080/api/v3/students/${editingStudent.id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(editForm),
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.message || "Güncelleme başarısız!");
-        }
-        return res.json();
-      })
-      .then(() => {
-        showSuccess("Öğrenci başarıyla güncellendi!");
-        setIsEditing(false);
-        fetchStudents();
-      })
-      .catch((err) => showError(err.message))
-      .finally(() => {
-        setEditLoading(false);
-      });
-  }
+    try {
+      const updatedStudentData = await studentApi.update(
+        editingStudent.id,
+        editForm
+      );
+      showSuccess("Öğrenci başarıyla güncellendi!");
+      handleCloseEdit();
+      // Sadece ilgili öğrenciyi güncelle
+      setStudents((prevStudents) =>
+        prevStudents.map((student) =>
+          student.id === editingStudent.id ? updatedStudentData : student
+        )
+      );
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      setEditLoading(false);
+    }
+  }, [editingStudent, editForm, handleCloseEdit, showSuccess, showError]);
 
   // Öğrenci sil
-  function handleDelete(id) {
-    if (window.confirm("Bu öğrenciyi silmek istediğinizden emin misiniz?")) {
-      fetch(`http://localhost:8080/api/v3/students/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then(async (res) => {
-          if (!res.ok) {
-            const data = await res.json().catch(() => ({}));
-            throw new Error(data.message || "Silme başarısız!");
-          }
-        })
-        .then(() => {
-          showSuccess("Öğrenci başarıyla silindi!");
-          fetchStudents();
-        })
-        .catch((err) => showError(err.message));
-    }
-  }
+  const handleDeleteStudent = useCallback(
+    async (id) => {
+      if (!window.confirm("Bu öğrenciyi silmek istediğinizden emin misiniz?"))
+        return;
+
+      try {
+        await studentApi.delete(id);
+        showSuccess("Öğrenci başarıyla silindi!");
+        // Sadece ilgili öğrenciyi listeden kaldır
+        setStudents((prevStudents) =>
+          prevStudents.filter((student) => student.id !== id)
+        );
+      } catch (err) {
+        showError(err.message);
+      }
+    },
+    [showSuccess, showError]
+  );
 
   // Ders atama modalını aç
-  function handleAssignLessons(student) {
+  const handleAssignLesson = useCallback((student) => {
     setSelectedStudent(student);
     setShowAssignModal(true);
-  }
+  }, []);
 
-  // Ders atama modalını kapat
-  function handleCloseAssignModal() {
+  // IP atama modalını aç
+  const handleAssignIp = useCallback((student) => {
+    setSelectedStudent(student);
+    setShowAssignIpModal(true);
+  }, []);
+
+  // Modal kapatma işlemleri
+  const handleCloseAssignModal = useCallback(() => {
     setShowAssignModal(false);
     setSelectedStudent(null);
-  }
+  }, []);
+
+  const handleCloseAssignIpModal = useCallback(() => {
+    setShowAssignIpModal(false);
+    setSelectedStudent(null);
+  }, []);
 
   // Ders atama başarılı olduğunda
-  function handleAssignSuccess() {
+  const handleAssignSuccess = useCallback(() => {
     if (selectedStudent) {
       const fetchUpdatedStudent = async () => {
         try {
@@ -272,7 +230,7 @@ function StudentList({ role }) {
             `http://localhost:8080/api/v3/students/${selectedStudent.id}`,
             {
               headers: {
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
               },
             }
           );
@@ -297,10 +255,10 @@ function StudentList({ role }) {
 
       fetchUpdatedStudent();
     }
-  }
+  }, [selectedStudent, editingStudent]);
 
-  // Öğrenci derslerini genişlet/daralt
-  function toggleStudentExpansion(studentId) {
+  // Genişletme/daraltma işlemleri
+  const toggleExpanded = useCallback((studentId) => {
     setExpandedStudents((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(studentId)) {
@@ -310,39 +268,80 @@ function StudentList({ role }) {
       }
       return newSet;
     });
-  }
+  }, []);
 
+  const toggleIpExpanded = useCallback((studentId) => {
+    setExpandedIpStudents((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(studentId)) {
+        newSet.delete(studentId);
+      } else {
+        newSet.add(studentId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // Input değişiklikleri
+  const handleInputChange = useCallback((e) => {
+    const { name, value, type, checked } = e.target;
+    setNewStudent((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  }, []);
+
+  const handleEditInputChange = useCallback((e) => {
+    const { name, value, type, checked } = e.target;
+    setEditForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  }, []);
+
+  // Component mount olduğunda öğrencileri çek
   useEffect(() => {
     fetchStudents();
-  }, [isAdmin]);
+  }, [fetchStudents]);
 
+  // Arama değiştiğinde arama yap
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      handleSearch();
-    }, 300);
-
+    const timeoutId = setTimeout(handleSearch, 500);
     return () => clearTimeout(timeoutId);
-  }, [search]);
+  }, [handleSearch]);
 
+  // Bildirim göster
+  const renderNotification = () => {
+    if (!message) return null;
+
+    const alertClass =
+      type === "success"
+        ? "alert-success"
+        : type === "error"
+        ? "alert-danger"
+        : "alert-info";
+
+    return (
+      <div
+        className={`alert ${alertClass} alert-dismissible fade show`}
+        role="alert"
+      >
+        {message}
+        <button
+          type="button"
+          className="btn-close"
+          onClick={() => setMessage("")}
+        ></button>
+      </div>
+    );
+  };
+
+  // Ana render
   return (
     <div className="container mt-4">
-      <h2 className="mb-4">Öğrenci Listesi</h2>
+      {renderNotification()}
 
-      {error && (
-        <div
-          className={`alert ${
-            error.includes("başarıyla") ? "alert-success" : "alert-danger"
-          } alert-dismissible fade show`}
-          role="alert"
-        >
-          {error}
-          <button
-            type="button"
-            className="btn-close"
-            onClick={() => setError("")}
-          ></button>
-        </div>
-      )}
+      <h2 className="mb-4">Öğrenci Listesi</h2>
 
       <div className="row mb-3">
         <div className="col-md-6">
@@ -366,17 +365,17 @@ function StudentList({ role }) {
         </div>
       </div>
 
-      {isAdmin && showAddForm && (
+      {/* Yeni öğrenci formu */}
+      {showAddForm && (
         <form className="mb-3" onSubmit={handleAddSubmit}>
           <div className="row g-2">
             <div className="col">
               <input
                 className="form-control"
                 placeholder="Name"
+                name="name"
                 value={newStudent.name}
-                onChange={(e) =>
-                  setNewStudent({ ...newStudent, name: e.target.value })
-                }
+                onChange={handleInputChange}
                 required
               />
             </div>
@@ -384,10 +383,9 @@ function StudentList({ role }) {
               <input
                 className="form-control"
                 placeholder="Surname"
+                name="surname"
                 value={newStudent.surname}
-                onChange={(e) =>
-                  setNewStudent({ ...newStudent, surname: e.target.value })
-                }
+                onChange={handleInputChange}
                 required
               />
             </div>
@@ -395,10 +393,9 @@ function StudentList({ role }) {
               <input
                 className="form-control"
                 placeholder="Number"
+                name="number"
                 value={newStudent.number}
-                onChange={(e) =>
-                  setNewStudent({ ...newStudent, number: e.target.value })
-                }
+                onChange={handleInputChange}
                 required
               />
             </div>
@@ -411,6 +408,7 @@ function StudentList({ role }) {
         </form>
       )}
 
+      {/* Düzenleme modalı */}
       {editingStudent && (
         <div className="card mb-4 border-primary">
           <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
@@ -442,16 +440,20 @@ function StudentList({ role }) {
                   </div>
                   <div className="card-body">
                     {isEditing ? (
-                      <form onSubmit={handleEditUpdate}>
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          handleUpdateStudent();
+                        }}
+                      >
                         <div className="mb-3">
                           <label className="form-label">Ad</label>
                           <input
                             type="text"
                             className="form-control"
+                            name="name"
                             value={editForm.name}
-                            onChange={(e) =>
-                              setEditForm({ ...editForm, name: e.target.value })
-                            }
+                            onChange={handleEditInputChange}
                             required
                           />
                         </div>
@@ -460,13 +462,9 @@ function StudentList({ role }) {
                           <input
                             type="text"
                             className="form-control"
+                            name="surname"
                             value={editForm.surname}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                surname: e.target.value,
-                              })
-                            }
+                            onChange={handleEditInputChange}
                             required
                           />
                         </div>
@@ -475,13 +473,9 @@ function StudentList({ role }) {
                           <input
                             type="text"
                             className="form-control"
+                            name="number"
                             value={editForm.number}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                number: e.target.value,
-                              })
-                            }
+                            onChange={handleEditInputChange}
                             required
                           />
                         </div>
@@ -490,21 +484,11 @@ function StudentList({ role }) {
                             <input
                               type="checkbox"
                               className="form-check-input"
-                              id="verified"
+                              name="verified"
                               checked={editForm.verified}
-                              onChange={(e) =>
-                                setEditForm({
-                                  ...editForm,
-                                  verified: e.target.checked,
-                                })
-                              }
+                              onChange={handleEditInputChange}
                             />
-                            <label
-                              className="form-check-label"
-                              htmlFor="verified"
-                            >
-                              Onaylı
-                            </label>
+                            <label className="form-check-label">Onaylı</label>
                           </div>
                         </div>
                         <div className="mb-3">
@@ -512,18 +496,11 @@ function StudentList({ role }) {
                             <input
                               type="checkbox"
                               className="form-check-input"
-                              id="view"
+                              name="view"
                               checked={editForm.view}
-                              onChange={(e) =>
-                                setEditForm({
-                                  ...editForm,
-                                  view: e.target.checked,
-                                })
-                              }
+                              onChange={handleEditInputChange}
                             />
-                            <label className="form-check-label" htmlFor="view">
-                              Görünür
-                            </label>
+                            <label className="form-check-label">Görünür</label>
                           </div>
                         </div>
                         <button
@@ -594,11 +571,18 @@ function StudentList({ role }) {
                   <div className="card-body">
                     <div className="mb-3">
                       <button
-                        className="btn btn-primary w-100"
-                        onClick={() => handleAssignLessons(editingStudent)}
+                        className="btn btn-primary w-100 mb-2"
+                        onClick={() => handleAssignLesson(editingStudent)}
                         disabled={editLoading}
                       >
                         📚 Ders Ata/Düzenle
+                      </button>
+                      <button
+                        className="btn btn-info w-100"
+                        onClick={() => handleAssignIp(editingStudent)}
+                        disabled={editLoading}
+                      >
+                        🌐 IPv4 Adresi Ata
                       </button>
                     </div>
 
@@ -634,6 +618,44 @@ function StudentList({ role }) {
                         </div>
                       )}
                     </div>
+
+                    <div className="mt-4">
+                      <h6>Mevcut IP Adresleri:</h6>
+                      {editingStudent.ipAddresses &&
+                      editingStudent.ipAddresses.length > 0 ? (
+                        <div className="row">
+                          {editingStudent.ipAddresses.map((ipAddress) => (
+                            <div key={ipAddress.id} className="col-12 mb-2">
+                              <div className="card border-info">
+                                <div className="card-body p-2">
+                                  <h6 className="card-title mb-1">
+                                    {ipAddress.ipAddress}
+                                  </h6>
+                                  {ipAddress.description && (
+                                    <p className="card-text small mb-1">
+                                      {ipAddress.description}
+                                    </p>
+                                  )}
+                                  <small className="text-muted">
+                                    📅{" "}
+                                    {new Date(
+                                      ipAddress.createdAt
+                                    ).toLocaleDateString("tr-TR")}
+                                  </small>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center text-muted py-3">
+                          <p>Henüz IPv4 adresi atanmamış.</p>
+                          <p>
+                            IPv4 adresi atamak için yukarıdaki butona tıklayın.
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -642,6 +664,7 @@ function StudentList({ role }) {
         </div>
       )}
 
+      {/* Öğrenci listesi */}
       <div className="table-responsive">
         <table className="table table-striped table-hover">
           <thead className="table-dark">
@@ -652,6 +675,7 @@ function StudentList({ role }) {
               {isAdmin && <th>Doğrulandı</th>}
               {isAdmin && <th>Görünüm</th>}
               <th>Dersler</th>
+              <th>IPv4 Adresleri</th>
               {isAdmin && (
                 <th style={{ width: "240px", whiteSpace: "nowrap" }}>
                   Eylemler
@@ -692,13 +716,26 @@ function StudentList({ role }) {
                     {student.lessons && student.lessons.length > 0 ? (
                       <button
                         className="btn btn-info btn-sm"
-                        onClick={() => toggleStudentExpansion(student.id)}
+                        onClick={() => toggleExpanded(student.id)}
                         title={`${student.lessons.length} ders göster/gizle`}
                       >
                         📚 ({student.lessons.length})
                       </button>
                     ) : (
                       <span className="text-muted">Ders yok</span>
+                    )}
+                  </td>
+                  <td>
+                    {student.ipAddresses && student.ipAddresses.length > 0 ? (
+                      <button
+                        className="btn btn-warning btn-sm"
+                        onClick={() => toggleIpExpanded(student.id)}
+                        title={`${student.ipAddresses.length} IPv4 adresi göster/gizle`}
+                      >
+                        🌐 ({student.ipAddresses.length})
+                      </button>
+                    ) : (
+                      <span className="text-muted">IPv4 yok</span>
                     )}
                   </td>
                   {isAdmin && (
@@ -732,7 +769,7 @@ function StudentList({ role }) {
                       </button>
                       <button
                         className="btn btn-danger btn-sm"
-                        onClick={() => handleDelete(student.id)}
+                        onClick={() => handleDeleteStudent(student.id)}
                       >
                         Delete
                       </button>
@@ -743,7 +780,7 @@ function StudentList({ role }) {
                   student.lessons &&
                   student.lessons.length > 0 && (
                     <tr>
-                      <td colSpan={isAdmin ? 7 : 4} className="p-0">
+                      <td colSpan={isAdmin ? 8 : 5} className="p-0">
                         <div className="p-3 border-top bg-light">
                           <div className="d-flex justify-content-between align-items-center mb-2">
                             <h6 className="mb-0">
@@ -751,7 +788,7 @@ function StudentList({ role }) {
                             </h6>
                             <button
                               className="btn btn-sm btn-outline-secondary"
-                              onClick={() => toggleStudentExpansion(student.id)}
+                              onClick={() => toggleExpanded(student.id)}
                             >
                               ✕ Kapat
                             </button>
@@ -781,6 +818,51 @@ function StudentList({ role }) {
                       </td>
                     </tr>
                   )}
+                {expandedIpStudents.has(student.id) &&
+                  student.ipAddresses &&
+                  student.ipAddresses.length > 0 && (
+                    <tr>
+                      <td colSpan={isAdmin ? 8 : 5} className="p-0">
+                        <div className="p-3 border-top bg-light">
+                          <div className="d-flex justify-content-between align-items-center mb-2">
+                            <h6 className="mb-0">
+                              🌐 {student.name} {student.surname} - IP Adresleri
+                            </h6>
+                            <button
+                              className="btn btn-sm btn-outline-secondary"
+                              onClick={() => toggleIpExpanded(student.id)}
+                            >
+                              ✕ Kapat
+                            </button>
+                          </div>
+                          <div className="row">
+                            {student.ipAddresses.map((ipAddress) => (
+                              <div key={ipAddress.id} className="col-md-4 mb-2">
+                                <div className="card border-warning">
+                                  <div className="card-body p-2">
+                                    <h6 className="card-title mb-1 text-warning">
+                                      {ipAddress.ipAddress}
+                                    </h6>
+                                    {ipAddress.description && (
+                                      <p className="card-text small mb-1">
+                                        {ipAddress.description}
+                                      </p>
+                                    )}
+                                    <small className="text-muted">
+                                      📅{" "}
+                                      {new Date(
+                                        ipAddress.createdAt
+                                      ).toLocaleDateString("tr-TR")}
+                                    </small>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
               </React.Fragment>
             ))}
           </tbody>
@@ -793,10 +875,19 @@ function StudentList({ role }) {
         </div>
       )}
 
+      {/* Modal'lar */}
       {showAssignModal && selectedStudent && (
         <AssignLessonModal
           student={selectedStudent}
           onClose={handleCloseAssignModal}
+          onSuccess={handleAssignSuccess}
+        />
+      )}
+
+      {showAssignIpModal && selectedStudent && (
+        <AssignIpAddressModal
+          student={selectedStudent}
+          onClose={handleCloseAssignIpModal}
           onSuccess={handleAssignSuccess}
         />
       )}

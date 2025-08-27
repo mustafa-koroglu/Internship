@@ -1,243 +1,158 @@
-import React, { useState, useEffect, useCallback } from "react";
-import IpAddressList from "./IpAddressList";
+import React, { useEffect, useState, useCallback } from "react";
 import IpAddressForm from "./IpAddressForm";
+import IpAddressList from "./IpAddressList";
 import IpAddressEditModal from "./IpAddressEditModal";
+import { apiGet, apiPost, apiDelete, apiPut } from "./utils/api";
+import { useNotification } from "./hooks/useNotification";
 
-const IpManagement = ({ role }) => {
+function IpManagement({ role }) {
   const [ipAddresses, setIpAddresses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [editingIp, setEditingIp] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingIpAddress, setEditingIpAddress] = useState(null);
+  const [search, setSearch] = useState("");
 
-  const API_BASE_URL = "http://localhost:8080/api/v1/ip-addresses";
+  const { message, type, setMessage, showError, showSuccess } =
+    useNotification();
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem("token");
-    return {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
-  };
-
-  const fetchIpAddresses = useCallback(async (search = "") => {
+  // IP adreslerini çek
+  const fetchIpAddresses = useCallback(async () => {
     try {
-      setLoading(true);
-      
-      const url = search
-        ? `${API_BASE_URL}/search?q=${encodeURIComponent(search)}`
-        : `${API_BASE_URL}/all`;
-      
-      const response = await fetch(url, {
-        method: "GET",
-        headers: getAuthHeaders(),
-      });
+      const data = await apiGet("/v1/ip-addresses");
+      // Artık tüm IP'leri göster çünkü CIDR subnet'leri kaydetmiyoruz
+      setIpAddresses(data);
+    } catch (err) {
+      showError(err.message);
+    }
+  }, [showError]);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+  // Arama işlemi
+  const handleSearch = useCallback(async () => {
+    try {
+      if (!search.trim()) {
+        await fetchIpAddresses();
+        return;
+      }
+      const data = await apiGet(
+        `/v1/ip-addresses/search?q=${encodeURIComponent(search)}`
+      );
+      // Artık tüm IP'leri göster çünkü CIDR subnet'leri kaydetmiyoruz
+      setIpAddresses(data);
+    } catch (err) {
+      showError(err.message);
+    }
+  }, [search, fetchIpAddresses, showError]);
+
+  // IP adresi sil
+  const handleDelete = useCallback(
+    async (ipAddress) => {
+      let confirmMessage = "Bu IP adresini silmek istediğinizden emin misiniz?";
+
+      // Eğer subnet veya range ise uyarı mesajı ekle
+      if (
+        ipAddress.ipAddress.includes("/") ||
+        ipAddress.ipAddress.includes("-")
+      ) {
+        confirmMessage = `Bu ${
+          ipAddress.ipAddress.includes("/") ? "subnet" : "IP aralığını"
+        } silmek istediğinizden emin misiniz?\n\nBu işlem, bu aralıktaki öğrencilere atanmış tüm IP adreslerini de silecektir!`;
       }
 
-      const data = await response.json();
-      setIpAddresses(data);
-      setError(null);
-    } catch (err) {
-      console.error("IP adresleri getirilemedi:", err);
-      setError("IP adresleri yüklenirken hata oluştu");
-    } finally {
-      setLoading(false);
-    }
+      if (!window.confirm(confirmMessage)) {
+        return;
+      }
+
+      try {
+        await apiDelete(`/v1/ip-addresses/${ipAddress.id}`);
+        showSuccess("IP adresi başarıyla silindi!");
+        // Sadece ilgili IP adresini listeden kaldır
+        setIpAddresses((prev) => prev.filter((ip) => ip.id !== ipAddress.id));
+      } catch (err) {
+        showError(err.message);
+      }
+    },
+    [showSuccess, showError]
+  );
+
+  // IP adresi düzenle
+  const handleEdit = useCallback((ip) => {
+    setEditingIpAddress(ip);
   }, []);
 
-  const createIpAddress = async (ipInput, description) => {
-    try {
-      const response = await fetch(API_BASE_URL, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          ipInput,
-          description,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(errorData || "IP adresi oluşturulamadı");
-      }
-
-      const data = await response.json();
-      setShowForm(false);
-      fetchIpAddresses(searchTerm);
-      return { success: true, data: data };
-    } catch (err) {
-      console.error("IP adresi oluşturulamadı:", err);
-      return { success: false, error: err.message };
-    }
-  };
-
-  const updateIpAddress = async (id, ipInput, description, isActive) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/${id}`, {
-        method: "PUT",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          ipInput,
-          description,
-          isActive,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(errorData || "IP adresi güncellenemedi");
-      }
-
-      const data = await response.json();
-      setEditingIp(null);
-      fetchIpAddresses(searchTerm);
-      return { success: true, data: data };
-    } catch (err) {
-      console.error("IP adresi güncellenemedi:", err);
-      return { success: false, error: err.message };
-    }
-  };
-
-  const deleteIpAddress = async (id) => {
-    if (!window.confirm("Bu IP adresini silmek istediğinizden emin misiniz?")) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/${id}`, {
-        method: "DELETE",
-        headers: getAuthHeaders(),
-      });
-
-      if (!response.ok) {
-        throw new Error("IP adresi silinemedi");
-      }
-
-      fetchIpAddresses(searchTerm);
-    } catch (err) {
-      console.error("IP adresi silinemedi:", err);
-      alert("IP adresi silinirken hata oluştu");
-    }
-  };
-
-  const activateIpAddress = async (id) => {
-    if (
-      !window.confirm(
-        "Bu IP adresini aktifleştirmek istediğinizden emin misiniz?"
-      )
-    ) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/${id}`, {
-        method: "PUT",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          ipInput: ipAddresses.find((ip) => ip.id === id)?.ipAddress || "",
-          description:
-            ipAddresses.find((ip) => ip.id === id)?.description || "",
-          isActive: true,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("IP adresi aktifleştirilemedi");
-      }
-
-      fetchIpAddresses(searchTerm);
-      alert("IP adresi başarıyla aktifleştirildi!");
-    } catch (err) {
-      console.error("IP adresi aktifleştirilemedi:", err);
-      alert("IP adresi aktifleştirilirken hata oluştu");
-    }
-  };
-
-  const validateIpAddress = async (ipInput) => {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/validate?ipInput=${encodeURIComponent(ipInput)}`,
-        {
-          method: "GET",
-          headers: getAuthHeaders(),
-        }
+  // IP adresi düzenleme başarılı
+  const handleEditSuccess = useCallback(
+    (updatedIp) => {
+      setIpAddresses((prev) =>
+        prev.map((ip) => (ip.id === updatedIp.id ? updatedIp : ip))
       );
+      showSuccess("IP adresi başarıyla güncellendi!");
+    },
+    [showSuccess]
+  );
 
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(errorData || "IP adresi doğrulanamadı");
+  // IP adresi düzenleme modalını kapat
+  const handleCloseEdit = useCallback(() => {
+    setEditingIpAddress(null);
+  }, []);
+
+  // IP adresi aktifleştir
+  const handleActivate = useCallback(
+    async (id) => {
+      try {
+        await apiPut(`/v1/ip-addresses/${id}`, { isActive: true });
+        showSuccess("IP adresi aktifleştirildi!");
+        // Sadece ilgili IP adresini güncelle
+        setIpAddresses((prev) =>
+          prev.map((ip) => (ip.id === id ? { ...ip, isActive: true } : ip))
+        );
+      } catch (err) {
+        showError(err.message);
       }
+    },
+    [showSuccess, showError]
+  );
 
-      const data = await response.json();
-      return { success: true, data: data };
-    } catch (err) {
-      return { success: false, error: err.message };
-    }
-  };
-
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      fetchIpAddresses(searchTerm);
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [searchTerm, fetchIpAddresses]);
-
-  const handleEdit = (ipAddress) => {
-    setEditingIp(ipAddress);
-  };
-
-  const handleCloseEdit = () => {
-    setEditingIp(null);
-  };
-
+  // Component mount olduğunda IP adreslerini çek
   useEffect(() => {
     fetchIpAddresses();
   }, [fetchIpAddresses]);
 
+  // Arama değiştiğinde arama yap
   useEffect(() => {
-    if (showForm || editingIp) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
+    const timeoutId = setTimeout(handleSearch, 500);
+    return () => clearTimeout(timeoutId);
+  }, [handleSearch]);
 
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }, [showForm, editingIp]);
+  // Bildirim göster
+  const renderNotification = () => {
+    if (!message) return null;
 
-  if (role !== "ADMIN") {
+    const alertClass =
+      type === "success"
+        ? "alert-success"
+        : type === "error"
+        ? "alert-danger"
+        : "alert-info";
+
     return (
-      <div className="container mt-5">
-        <div className="alert alert-warning">
-          Bu sayfaya erişim yetkiniz bulunmamaktadır.
-        </div>
+      <div
+        className={`alert ${alertClass} alert-dismissible fade show`}
+        role="alert"
+      >
+        {message}
+        <button
+          type="button"
+          className="btn-close"
+          onClick={() => setMessage("")}
+        ></button>
       </div>
     );
-  }
+  };
 
   return (
     <div className="container mt-4">
-      <h2 className="mb-4">IP Adresi Yönetimi (IPv4 & IPv6)</h2>
+      {renderNotification()}
 
-      {error && (
-        <div
-          className="alert alert-danger alert-dismissible fade show"
-          role="alert"
-        >
-          {error}
-          <button
-            type="button"
-            className="btn-close"
-            onClick={() => setError(null)}
-          ></button>
-        </div>
-      )}
+      <h2 className="mb-4">IP Adresi Yönetimi (IPv4 & IPv6)</h2>
 
       <div className="row mb-3">
         <div className="col-md-6">
@@ -245,12 +160,15 @@ const IpManagement = ({ role }) => {
             type="text"
             className="form-control"
             placeholder="IP adresi veya açıklama ara..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
         <div className="col-md-6 text-end">
-          <button className="btn btn-primary" onClick={() => setShowForm(true)}>
+          <button
+            className="btn btn-primary"
+            onClick={() => setShowAddForm(true)}
+          >
             <i className="fas fa-plus me-2"></i>
             Yeni IP Adresi Ekle
           </button>
@@ -259,30 +177,95 @@ const IpManagement = ({ role }) => {
 
       <IpAddressList
         ipAddresses={ipAddresses}
-        loading={loading}
+        onUpdate={fetchIpAddresses}
+        onDelete={handleDelete}
         onEdit={handleEdit}
-        onDelete={deleteIpAddress}
-        onActivate={activateIpAddress}
+        onActivate={handleActivate}
       />
 
-      {showForm && (
+      {showAddForm && (
         <IpAddressForm
-          onSubmit={createIpAddress}
-          onValidate={validateIpAddress}
-          onClose={() => setShowForm(false)}
+          onSubmit={async (ipInput, description) => {
+            try {
+              const data = await apiPost("/v1/ip-addresses", {
+                ipInput,
+                description,
+              });
+              showSuccess("IP adresi başarıyla eklendi!");
+              // Yeni IP adresini listeye ekle
+              setIpAddresses((prev) => [...prev, data]);
+              setShowAddForm(false);
+              return { success: true, data };
+            } catch (err) {
+              // Hata mesajını daha açıklayıcı yap
+              let errorMessage = "IP adresi eklenemedi";
+
+              if (err.message.includes("Gecersiz IP formatı")) {
+                errorMessage = "Hatalı IP adresi formatı";
+              } else if (err.message.includes("Bu IP adresi kaydedilemez")) {
+                errorMessage = "Bu IP adresi kaydedilemez";
+              } else if (err.message.includes("Zaten mevcut")) {
+                errorMessage = "Bu IP adresi kaydedilemez";
+              } else if (
+                err.message.includes("subnet veya aralık içinde bulunuyor")
+              ) {
+                errorMessage = "Bu IP adresi mevcut";
+              } else if (err.message.includes("parse edilemedi")) {
+                errorMessage = "IP adresi formatı tanınmıyor";
+              } else if (err.message.includes("API çağrısı başarısız")) {
+                errorMessage = "Bu IP adresi mevcut";
+              } else {
+                errorMessage = err.message;
+              }
+
+              showError(errorMessage);
+              return { success: false, error: errorMessage };
+            }
+          }}
+          onValidate={async (ipInput) => {
+            try {
+              const data = await apiGet(
+                `/v1/ip-addresses/validate?ipInput=${encodeURIComponent(
+                  ipInput
+                )}`
+              );
+              return { success: true, data };
+            } catch (err) {
+              // Hata mesajını daha açıklayıcı yap
+              let errorMessage = "Hatalı IP adresi formatı";
+
+              if (err.message.includes("Gecersiz IP formatı")) {
+                errorMessage = "Hatalı IP adresi formatı";
+              } else if (err.message.includes("Bu IP adresi kaydedilemez")) {
+                errorMessage = "Bu IP adresi kaydedilemez";
+              } else if (err.message.includes("Zaten mevcut")) {
+                errorMessage = "Bu IP adresi kaydedilemez";
+              } else if (
+                err.message.includes("subnet veya aralık içinde bulunuyor")
+              ) {
+                errorMessage = "Bu IP adresi mevcut";
+              } else if (err.message.includes("parse edilemedi")) {
+                errorMessage = "IP adresi formatı tanınmıyor";
+              } else {
+                errorMessage = "Bu IP adresi mevcut";
+              }
+
+              return { success: false, error: errorMessage };
+            }
+          }}
+          onClose={() => setShowAddForm(false)}
         />
       )}
 
-      {editingIp && (
+      {editingIpAddress && (
         <IpAddressEditModal
-          ipAddress={editingIp}
-          onSubmit={updateIpAddress}
-          onValidate={validateIpAddress}
+          ipAddress={editingIpAddress}
           onClose={handleCloseEdit}
+          onSuccess={handleEditSuccess}
         />
       )}
     </div>
   );
-};
+}
 
 export default IpManagement;

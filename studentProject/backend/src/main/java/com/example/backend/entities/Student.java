@@ -42,4 +42,7 @@ public class Student {
     )
     private Set<Lesson> lessons = new HashSet<>();
 
+    @OneToMany(mappedBy = "student", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<IpAddress> ipAddresses = new HashSet<>();
+
 }

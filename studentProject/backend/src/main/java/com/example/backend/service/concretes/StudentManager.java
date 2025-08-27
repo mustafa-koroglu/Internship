@@ -30,37 +30,34 @@ public class StudentManager implements StudentService {
     @Override
     public Student save(Student student) {
         try {
-            // Öğrenci numarasına göre mevcut öğrenciyi kontrol et
             List<Student> existingStudents = studentsRepository.findByNumber(student.getNumber());
             
             if (existingStudents.isEmpty()) {
-                // Yeni öğrenci - varsayılan değerleri ayarla
                 student.setVerified(false);
                 student.setView(false);
-                                        log.info("Yeni ogrenci kaydediliyor: {} {} ({})", 
-                                student.getName(), student.getSurname(), student.getNumber());
+                log.info("Yeni ogrenci kaydediliyor: {} {} ({})", 
+                        student.getName(), student.getSurname(), student.getNumber());
             } else {
-                // Mevcut öğrenci - sadece onaylanmamışsa güncelle
                 Student existingStudent = existingStudents.get(0);
                 if (!existingStudent.getVerified()) {
                     existingStudent.setName(student.getName());
                     existingStudent.setSurname(student.getSurname());
-                                                    log.info("Mevcut ogrenci guncelleniyor: {} {} ({})", 
-                                        existingStudent.getName(), existingStudent.getSurname(), existingStudent.getNumber());
+                    log.info("Mevcut ogrenci guncelleniyor: {} {} ({})", 
+                            existingStudent.getName(), existingStudent.getSurname(), existingStudent.getNumber());
                     return studentsRepository.save(existingStudent);
                 } else {
-                                                    log.info("Ogrenci zaten onaylanmis, guncelleme yapilmiyor: {} {} ({})", 
-                                        existingStudent.getName(), existingStudent.getSurname(), existingStudent.getNumber());
+                    log.info("Ogrenci zaten onaylanmis, guncelleme yapilmiyor: {} {} ({})", 
+                            existingStudent.getName(), existingStudent.getSurname(), existingStudent.getNumber());
                     return existingStudent;
                 }
             }
             
             return studentsRepository.save(student);
-                            } catch (Exception e) {
-                        log.error("Ogrenci kaydedilirken hata: {} {} - Hata: {}", 
-                                 student.getName(), student.getSurname(), e.getMessage());
-                        throw new RuntimeException("Ogrenci kaydedilemedi: " + e.getMessage(), e);
-                    }
+        } catch (Exception e) {
+            log.error("Ogrenci kaydedilirken hata: {} {} - Hata: {}", 
+                     student.getName(), student.getSurname(), e.getMessage());
+            throw new RuntimeException("Ogrenci kaydedilemedi: " + e.getMessage(), e);
+        }
     }
 
     @Override

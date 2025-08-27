@@ -21,13 +21,13 @@ function AssignLessonModal({ student, onClose, onSuccess }) {
       }
     };
     document.addEventListener("keydown", handleEscape);
+    
+    // Sadece scroll'u kilitle, pozisyonu değiştirme
     document.body.style.overflow = "hidden";
-    document.body.style.paddingRight = "15px";
 
     return () => {
       document.removeEventListener("keydown", handleEscape);
       document.body.style.overflow = "unset";
-      document.body.style.paddingRight = "0px";
     };
   }, [handleClose]);
 

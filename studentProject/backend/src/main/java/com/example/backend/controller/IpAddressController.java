@@ -2,6 +2,7 @@ package com.example.backend.controller;
 
 import com.example.backend.request.CreateIpAddressRequest;
 import com.example.backend.request.UpdateIpAddressRequest;
+import com.example.backend.request.AssignIpAddressRequest;
 import com.example.backend.response.IpAddressResponse;
 import com.example.backend.service.abstracts.IpAddressService;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,9 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.stream.Collectors;
+import com.example.backend.entities.IpAddress;
+import com.example.backend.dataAccess.IpAddressRepository;
 
 @RestController
 @RequestMapping("/api/v1/ip-addresses")
@@ -25,11 +29,12 @@ import java.util.HashMap;
 public class IpAddressController {
 
     private final IpAddressService ipAddressService;
+    private final IpAddressRepository ipAddressRepository;
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<IpAddressResponse>> getAllIpAddresses() {
-        log.info("Tum IP adresleri getiriliyor...");
+        log.info("IP yönetim sayfası için tüm aktif IP adresleri getiriliyor...");
         List<IpAddressResponse> ipAddresses = ipAddressService.findAllActive();
         return ResponseEntity.ok(ipAddresses);
     }
@@ -39,6 +44,14 @@ public class IpAddressController {
     public ResponseEntity<List<IpAddressResponse>> getAllIpAddressesIncludingInactive() {
         log.info("Tum IP adresleri (aktif ve pasif) getiriliyor...");
         List<IpAddressResponse> ipAddresses = ipAddressService.findAll();
+        return ResponseEntity.ok(ipAddresses);
+    }
+
+    @GetMapping("/unassigned")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<IpAddressResponse>> getUnassignedIpAddresses() {
+        log.info("Atanmamış aktif IP adresleri getiriliyor...");
+        List<IpAddressResponse> ipAddresses = ipAddressService.findUnassignedActive();
         return ResponseEntity.ok(ipAddresses);
     }
 
@@ -127,12 +140,38 @@ public class IpAddressController {
                 return ResponseEntity.badRequest().body("IP adresleri parse edilemedi");
             }
 
-            List<String> duplicates = ipAddresses.stream()
-                    .filter(ip -> ipAddressService.existsByIpAddress(ip))
-                    .toList();
+            // Artık sadece 1 IP adresi olacak
+            String ipAddress = ipAddresses.get(0);
+            
+            // Eğer tekil IP adresi ise, önce network/broadcast kontrolü yap
+            if (com.example.backend.utility.IpValidationUtil.isValidIpv4(ipAddress) || 
+                com.example.backend.utility.IpValidationUtil.isValidIpv6(ipAddress)) {
+                
+                // Network veya broadcast adresi kontrolü - önce yap
+                if (!com.example.backend.utility.IpValidationUtil.isIpAssignableToStudent(ipAddress)) {
+                    return ResponseEntity.badRequest().body("Bu IP adresi kaydedilemez");
+                }
+            }
 
-            if (!duplicates.isEmpty()) {
-                return ResponseEntity.badRequest().body("Zaten mevcut IP adresleri: " + String.join(", ", duplicates));
+            // Aynı IP adresi zaten var mı kontrol et
+            if (ipAddressService.existsByIpAddress(ipAddress)) {
+                return ResponseEntity.badRequest().body("Bu IP adresi zaten mevcut: " + ipAddress);
+            }
+            
+            // Eğer tekil IP adresi ise, mevcut subnet veya range'lerle çakışma kontrolü yap
+            if (com.example.backend.utility.IpValidationUtil.isValidIpv4(ipAddress) || 
+                com.example.backend.utility.IpValidationUtil.isValidIpv6(ipAddress)) {
+                
+                // Mevcut tüm IP adreslerini al
+                List<IpAddress> existingIpAddresses = ipAddressRepository.findAll();
+                List<String> existingIpStrings = existingIpAddresses.stream()
+                        .map(IpAddress::getIpAddress)
+                        .collect(Collectors.toList());
+                
+                // IP adresinin mevcut subnet veya range içinde olup olmadığını kontrol et
+                if (com.example.backend.utility.IpValidationUtil.isIpInExistingRanges(ipAddress, existingIpStrings)) {
+                    return ResponseEntity.badRequest().body("Bu IP adresi mevcut bir subnet veya aralık içinde bulunuyor: " + ipAddress);
+                }
             }
 
             String inputType = com.example.backend.utility.IpParseUtil.getInputType(ipInput).name();
@@ -148,6 +187,53 @@ public class IpAddressController {
         } catch (Exception e) {
             log.error("IP adresi dogrulanirken hata: {}", e.getMessage());
             return ResponseEntity.badRequest().body("IP adresi dogrulanamadi");
+        }
+    }
+
+
+
+    @GetMapping("/unassigned/ipv4")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getUnassignedIpv4Addresses() {
+        log.info("Atanmamış IPv4 adresleri getiriliyor");
+        try {
+            List<IpAddressResponse> unassignedIpAddresses = ipAddressService.findUnassignedActiveIpv4();
+            return ResponseEntity.ok(unassignedIpAddresses);
+        } catch (Exception e) {
+            log.error("Atanmamış IPv4 adresleri getirilirken hata: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body("Atanmamış IPv4 adresleri getirilemedi");
+        }
+    }
+
+    @PostMapping("/assign")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> assignIpAddresses(@Valid @RequestBody AssignIpAddressRequest request) {
+        log.info("IP adresleri ataniyor, Student ID: {}, IP Count: {}", request.getStudentId(), request.getIpAddressIds().size());
+        try {
+            ipAddressService.assignIpAddressesToStudent(request.getStudentId(), request.getIpAddressIds());
+            return ResponseEntity.ok().body("IP adresleri basariyla atandi");
+        } catch (IllegalArgumentException e) {
+            log.error("IP adresi atama hatasi: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            log.error("IP adresi atama beklenmeyen hata: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body("IP adresleri atanamadi");
+        }
+    }
+
+    @PostMapping("/assign-random/{studentId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> assignRandomIpAddress(@PathVariable Integer studentId) {
+        log.info("Ogrenciye rastgele IP adresi ataniyor, Student ID: {}", studentId);
+        try {
+            IpAddressResponse assignedIp = ipAddressService.assignRandomIpAddressToStudent(studentId);
+            return ResponseEntity.ok().body(assignedIp);
+        } catch (IllegalArgumentException e) {
+            log.error("Rastgele IP atama hatasi: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            log.error("Rastgele IP atama beklenmeyen hata: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body("IP adresi atanamadi");
         }
     }
 

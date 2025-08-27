@@ -25,7 +25,9 @@ const IpAddressList = ({
   return (
     <div className="card">
       <div className="card-header">
-        <h5 className="mb-0">IP Adresleri (IPv4 & IPv6) ({ipAddresses.length})</h5>
+        <h5 className="mb-0">
+          IP Adresleri (IPv4 & IPv6) ({ipAddresses.length})
+        </h5>
       </div>
 
       <div className="card-body p-0">
@@ -51,12 +53,16 @@ const IpAddressList = ({
                 {ipAddresses.map((ip) => (
                   <tr key={ip.id}>
                     <td>
-                      <code className={`text-primary ${ip.ipAddress.includes(':') ? 'text-info' : ''}`}>
+                      <code
+                        className={`text-primary ${
+                          ip.ipAddress.includes(":") ? "text-info" : ""
+                        }`}
+                      >
                         {ip.ipAddress}
                       </code>
                       <br />
                       <small className="text-muted">
-                        {ip.ipAddress.includes(':') ? 'IPv6' : 'IPv4'}
+                        {ip.ipAddress.includes(":") ? "IPv6" : "IPv4"}
                       </small>
                     </td>
                     <td>
@@ -71,17 +77,26 @@ const IpAddressList = ({
                       )}
                     </td>
                     <td>
-                      {ip.isActive ? (
-                        <span className="badge bg-success">
-                          <i className="fas fa-check me-1"></i>
-                          Aktif
-                        </span>
-                      ) : (
-                        <span className="badge bg-secondary">
-                          <i className="fas fa-times me-1"></i>
-                          Pasif
-                        </span>
-                      )}
+                      <div>
+                        {ip.isActive ? (
+                          <span className="badge bg-success me-1">
+                            <i className="fas fa-check me-1"></i>
+                            Aktif
+                          </span>
+                        ) : (
+                          <span className="badge bg-secondary me-1">
+                            <i className="fas fa-times me-1"></i>
+                            Pasif
+                          </span>
+                        )}
+                        {ip.isAssigned && (
+                          <span className="badge bg-info">
+                            <i className="fas fa-user me-1"></i>
+                            Atanmış{" "}
+                            {ip.assignedCount > 0 && `(${ip.assignedCount})`}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td>
                       <small className="text-muted">
@@ -116,7 +131,7 @@ const IpAddressList = ({
                         <button
                           type="button"
                           className="btn btn-outline-danger"
-                          onClick={() => onDelete(ip.id)}
+                          onClick={() => onDelete(ip)}
                           title="Sil"
                         >
                           <i className="fas fa-trash"></i>

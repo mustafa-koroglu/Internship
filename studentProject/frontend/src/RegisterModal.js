@@ -1,103 +1,103 @@
 import React, { useState } from "react";
+import { apiPost } from "./utils/api";
 
-// Admin kullanıcılar için yeni kullanıcı ekleme modalı
 function RegisterModal({ onClose }) {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("USER");
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+    role: "USER"
+  });
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const token = localStorage.getItem("token");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     setError("");
-    setSuccess("");
+
     try {
-      const response = await fetch("http://localhost:8080/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ username, password, role }),
-      });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || "Kayıt başarısız!");
-      }
-      setSuccess("Kullanıcı başarıyla kaydedildi");
-      setTimeout(() => onClose(), 1000);
+      await apiPost("/auth/register", formData);
+      alert("Kullanıcı başarıyla oluşturuldu!");
+      onClose();
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Kayıt başarısız!");
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
   return (
-    <div
-      className="modal show d-block"
-      tabIndex="-1"
-      style={{ background: "rgba(0,0,0,0.4)" }}
-    >
+    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
             <h5 className="modal-title">Yeni Kullanıcı Ekle</h5>
-            <button
-              type="button"
-              className="btn-close"
-              onClick={onClose}
-            ></button>
+            <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
-          <form onSubmit={handleSubmit}>
-            <div className="modal-body">
-              {error && <div className="alert alert-danger">{error}</div>}
-              {success && <div className="alert alert-success">{success}</div>}
+          <div className="modal-body">
+            {error && (
+              <div className="alert alert-danger" role="alert">
+                {error}
+              </div>
+            )}
+            
+            <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label className="form-label">Kullanıcı Adı</label>
                 <input
                   type="text"
                   className="form-control"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  name="username"
+                  value={formData.username}
+                  onChange={handleInputChange}
                   required
                 />
               </div>
+              
               <div className="mb-3">
                 <label className="form-label">Şifre</label>
                 <input
                   type="password"
                   className="form-control"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
                   required
                 />
               </div>
+              
               <div className="mb-3">
                 <label className="form-label">Rol</label>
                 <select
-                  className="form-select"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
+                  className="form-control"
+                  name="role"
+                  value={formData.role}
+                  onChange={handleInputChange}
                 >
                   <option value="USER">USER</option>
                   <option value="ADMIN">ADMIN</option>
                 </select>
               </div>
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={onClose}
-              >
-                Kapat
-              </button>
-              <button type="submit" className="btn btn-primary">
-                Kaydet
-              </button>
-            </div>
-          </form>
+              
+              <div className="modal-footer px-0 pb-0">
+                <button type="button" className="btn btn-secondary" onClick={onClose}>
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={loading}
+                >
+                  {loading ? "Oluşturuluyor..." : "Oluştur"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>

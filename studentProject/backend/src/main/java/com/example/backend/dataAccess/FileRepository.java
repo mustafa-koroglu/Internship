@@ -11,19 +11,19 @@ import java.util.List; // Liste
 @Repository
 public interface FileRepository extends JpaRepository<File, Long> {
 
-    List<File> findByProcessedAtBetweenOrderByProcessedAtDesc(LocalDateTime startDate, LocalDateTime endDate); // Tarih aralığında dosya arama metodu
+    List<File> findByProcessedAtBetweenOrderByProcessedAtDesc(LocalDateTime startDate, LocalDateTime endDate);
 
-    List<File> findByStatusOrderByProcessedAtDesc(File.FileStatus status); // Duruma göre dosya arama metodu
+    List<File> findByStatusOrderByProcessedAtDesc(File.FileStatus status);
 
-    List<File> findByFileNameContainingIgnoreCaseOrderByProcessedAtDesc(String fileName); // Dosya adına göre arama metodu
+    List<File> findByFileNameContainingIgnoreCaseOrderByProcessedAtDesc(String fileName);
 
-    @Query("SELECT f FROM File f ORDER BY f.processedAt DESC") // En son işlenen dosyaları getir sorgusu
-    List<File> findRecentFiles(org.springframework.data.domain.Pageable pageable); // Son dosyaları getir metodu
+    @Query("SELECT f FROM File f ORDER BY f.processedAt DESC")
+    List<File> findRecentFiles(org.springframework.data.domain.Pageable pageable);
 
-    long countByStatus(File.FileStatus status); // Duruma göre dosya sayısı metodu
+    long countByStatus(File.FileStatus status);
 
-    List<File> findAllByOrderByProcessedAtDesc(); // Tüm dosyaları tarihe göre sırala metodu
+    List<File> findAllByOrderByProcessedAtDesc();
 
-    @Query("SELECT COALESCE(SUM(f.studentCount), 0) FROM File f WHERE f.status = 'DONE'") // Toplam işlenen öğrenci sayısı sorgusu
-    long getTotalProcessedStudents(); // Toplam işlenen öğrenci sayısı metodu
+    @Query("SELECT COALESCE(SUM(f.studentCount), 0) FROM File f WHERE f.status = 'DONE'")
+    long getTotalProcessedStudents();
 } 

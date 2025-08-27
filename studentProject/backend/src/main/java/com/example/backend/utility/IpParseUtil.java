@@ -2,8 +2,6 @@ package com.example.backend.utility;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 public class IpParseUtil {
 
@@ -14,138 +12,45 @@ public class IpParseUtil {
         }
 
         String trimmedInput = input.trim();
-        Set<String> uniqueIps = new TreeSet<>();
+        List<String> result = new ArrayList<>();
 
         // IPv4 tekil IP kontrolü
         if (IpValidationUtil.isValidIpv4(trimmedInput)) {
-            uniqueIps.add(trimmedInput);
-            return new ArrayList<>(uniqueIps);
+            result.add(trimmedInput);
+            return result;
         }
 
         // IPv6 tekil IP kontrolü
         if (IpValidationUtil.isValidIpv6(trimmedInput)) {
-            uniqueIps.add(trimmedInput);
-            return new ArrayList<>(uniqueIps);
+            result.add(trimmedInput);
+            return result;
         }
 
-        // IPv4 CIDR kontrolü - subnet'i tekil IP'lere çevir
+        // IPv4 CIDR kontrolü - olduğu gibi kaydet, açma
         if (IpValidationUtil.isValidIpv4Cidr(trimmedInput)) {
-            List<String> cidrIps = parseIpv4Cidr(trimmedInput);
-            uniqueIps.addAll(cidrIps);
-            return new ArrayList<>(uniqueIps);
+            result.add(trimmedInput);
+            return result;
         }
 
-        // IPv6 CIDR kontrolü - subnet'i tekil IP'lere çevir
+        // IPv6 CIDR kontrolü - olduğu gibi kaydet
         if (IpValidationUtil.isValidIpv6Cidr(trimmedInput)) {
-            List<String> cidrIps = parseIpv6Cidr(trimmedInput);
-            uniqueIps.addAll(cidrIps);
-            return new ArrayList<>(uniqueIps);
+            result.add(trimmedInput);
+            return result;
         }
 
-        // IPv4 aralığı kontrolü - aralığı tekil IP'lere çevir
+        // IPv4 aralığı kontrolü - olduğu gibi kaydet, açma
         if (IpValidationUtil.isValidIpv4Range(trimmedInput)) {
-            List<String> rangeIps = parseIpv4Range(trimmedInput);
-            uniqueIps.addAll(rangeIps);
-            return new ArrayList<>(uniqueIps);
+            result.add(trimmedInput);
+            return result;
         }
 
-        // IPv6 aralığı kontrolü - aralığı tekil IP'lere çevir
+        // IPv6 aralığı kontrolü - olduğu gibi kaydet
         if (IpValidationUtil.isValidIpv6Range(trimmedInput)) {
-            List<String> rangeIps = parseIpv6Range(trimmedInput);
-            uniqueIps.addAll(rangeIps);
-            return new ArrayList<>(uniqueIps);
+            result.add(trimmedInput);
+            return result;
         }
 
-        return new ArrayList<>();
-    }
-
-    // IPv4 CIDR formatındaki IP'yi parse eder
-    private static List<String> parseIpv4Cidr(String cidr) {
-        List<String> ips = new ArrayList<>();
-
-        try {
-            // CIDR'ı IP ve mask kısımlarına ayır
-            String[] parts = cidr.split("/");
-            String networkIp = parts[0];
-            String mask = parts[1];
-
-            // IPv4 için CIDR formatını koru
-            ips.add(networkIp + "/" + mask);
-
-        } catch (Exception e) {
-        }
-
-        return ips;
-    }
-
-    // IPv6 CIDR formatındaki IP'yi parse eder
-    private static List<String> parseIpv6Cidr(String cidr) {
-        List<String> ips = new ArrayList<>();
-
-        try {
-            // CIDR'ı IP ve mask kısımlarına ayır
-            String[] parts = cidr.split("/");
-            String networkIp = parts[0];
-            String mask = parts[1];
-
-            // IPv6 için CIDR formatını koru
-            ips.add(normalizeIpv6(networkIp) + "/" + mask);
-
-        } catch (Exception e) {
-        }
-
-        return ips;
-    }
-
-    // IPv4 aralığını parse eder
-    private static List<String> parseIpv4Range(String ipRange) {
-        List<String> ips = new ArrayList<>();
-
-        try {
-            // Aralığı başlangıç ve bitiş IP'lerine ayır
-            String[] parts = ipRange.split("-");
-            String startIp = parts[0].trim();
-            String endIp = parts[1].trim();
-
-            // Başlangıç ve bitiş IP'lerini long değerine çevir
-            long startLong = IpValidationUtil.ipToLong(startIp);
-            long endLong = IpValidationUtil.ipToLong(endIp);
-
-            // Aralıktaki tüm IP'leri ekle (başlangıç ve bitiş dahil)
-            for (long ip = startLong; ip <= endLong; ip++) {
-                ips.add(IpValidationUtil.longToIp(ip));
-            }
-
-        } catch (Exception e) {
-        }
-
-        return ips;
-    }
-
-    //  IPv6 aralığını parse eder
-    private static List<String> parseIpv6Range(String ipRange) {
-        List<String> ips = new ArrayList<>();
-
-        try {
-            // Aralığı başlangıç ve bitiş IP'lerine ayır
-            String[] parts = ipRange.split("-");
-            String startIp = parts[0].trim();
-            String endIp = parts[1].trim();
-
-            // IPv6 için basit implementasyon - sadece başlangıç ve bitiş IP'lerini döner
-            ips.add(normalizeIpv6(startIp));
-            ips.add(normalizeIpv6(endIp));
-
-        } catch (Exception e) {
-        }
-
-        return ips;
-    }
-
-    // IPv6 adresini normalize eder
-    private static String normalizeIpv6(String ip) {
-        // Basit IPv6 normalizasyonu - küçük harfe çevir ve boşlukları temizle
-        return ip.toLowerCase().trim();
+        return result;
     }
 
     // IP girişinin tipini belirler

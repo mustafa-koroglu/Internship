@@ -1,108 +1,104 @@
-# Öğrenci Yönetim Sistemi
+# 🎓 Öğrenci Yönetim Sistemi
 
-Bu proje, modern web teknolojileri kullanılarak geliştirilmiş, mikroservis mimarisine sahip tam yığın (full-stack) bir öğrenci yönetim sistemidir.
+Modern web teknolojileri ile geliştirilmiş, mikroservis mimarisine sahip tam yığın (full-stack) öğrenci yönetim sistemidir. Öğrenci kayıtları, ders yönetimi, IP adresi atama ve CSV dosya işleme özelliklerini içeren kapsamlı bir yönetim platformu.
 
-## 📋 İçindekiler
+## 🚀 Özellikler
 
-- [Proje Mimarisi](#proje-mimarisi)
-- [Kullanılan Teknolojiler](#kullanılan-teknolojiler)
-- [Sistem Gereksinimleri](#sistem-gereksinimleri)
-- [Kurulum ve Çalıştırma](#kurulum-ve-çalıştırma)
-- [API Dokümantasyonu](#api-dokümantasyonu)
-- [Veritabanı Şeması](#veritabanı-şeması)
-- [IP Adresi Yönetimi](#ip-adresi-yönetimi)
-- [Güvenlik](#güvenlik)
-- [CSV İşleme](#csv-işleme)
-- [Geliştirme Rehberi](#geliştirme-rehberi)
-- [Test](#test)
-- [Dağıtım](#dağıtım)
-- [Katkıda Bulunma](#katkıda-bulunma)
-- [Lisans](#lisans)
+### 👥 Öğrenci Yönetimi
 
-## 🏗️ Proje Mimarisi
+- ✅ Öğrenci kayıt ve güncelleme
+- ✅ Öğrenci listesi görüntüleme
+- ✅ Arama ve filtreleme
+- ✅ Öğrenci onaylama sistemi
+- ✅ CSV dosyalarından toplu veri yükleme
 
-Proje üç ana bileşenden oluşmaktadır:
+### 📚 Ders Yönetimi
 
-### 1. Backend (Spring Boot)
+- ✅ Ders ekleme ve düzenleme
+- ✅ Öğrenci-ders ilişkilendirme
+- ✅ Ders listesi yönetimi
 
-- **Port:** 8080
-- **Amaç:** Öğrenci verilerinin yönetildiği, RESTful API'ler sunan ana iş mantığı katmanı
-- **Özellikler:**
-  - JWT tabanlı kimlik doğrulama ve yetkilendirme
-  - PostgreSQL veritabanı entegrasyonu
-  - CSV dosya işleme ve toplu veri yükleme
-  - Otomatik veri işleme scheduler'ı
-  - CORS yapılandırması
-  - Global exception handling
+### 🌐 IP Adresi Yönetimi
 
-### 2. Frontend (React)
+- ✅ IPv4/IPv6 adresi desteği
+- ✅ CIDR subnet yönetimi
+- ✅ IP aralığı tanımlama
+- ✅ Otomatik IP atama
+- ✅ Öğrenci-IP ilişkilendirme
+- ✅ Network/broadcast adresi kontrolü
 
-- **Port:** 3000
-- **Amaç:** Kullanıcıların etkileşimde bulunduğu modern web arayüzü
-- **Özellikler:**
-  - Responsive tasarım (Bootstrap)
-  - JWT token tabanlı oturum yönetimi
-  - Öğrenci CRUD işlemleri
-  - Arama ve filtreleme
-  - Modal tabanlı form işlemleri
+### 🔐 Güvenlik
 
-### 3. Config Server (Spring Cloud Config)
+- ✅ JWT tabanlı kimlik doğrulama
+- ✅ Role-based access control (ADMIN/USER)
+- ✅ Güvenli şifre hashleme
+- ✅ CORS yapılandırması
 
-- **Port:** 8888
-- **Amaç:** Merkezi yapılandırma yönetimi
-- **Özellikler:**
-  - Ortam bazlı konfigürasyon
-  - Dinamik yapılandırma güncellemeleri
-  - Güvenli yapılandırma yönetimi
+### 📊 CSV İşleme
 
-## 🛠️ Kullanılan Teknolojiler
+- ✅ Otomatik CSV dosya izleme
+- ✅ Toplu veri yükleme
+- ✅ Hata raporlama (.fail/.done uzantıları)
+- ✅ Virtual thread ile yüksek performans
 
-### Backend Stack
+## 🏗️ Mimari
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │    Backend      │    │  Config Server  │
+│   (React)       │◄──►│  (Spring Boot)  │◄──►│  (Spring Cloud) │
+│   Port: 3000    │    │   Port: 8080    │    │   Port: 8888    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │   PostgreSQL    │
+                       │   Database      │
+                       └─────────────────┘
+```
+
+## 🛠️ Teknoloji Stack
+
+### Backend
 
 - **Java 21** - Programlama dili
 - **Spring Boot 3.3.0** - Framework
 - **Spring Security** - Güvenlik
 - **Spring Data JPA** - Veritabanı erişimi
-- **PostgreSQL** - Veritabanı
-- **JWT (JSON Web Tokens)** - Kimlik doğrulama
-- **OpenCSV 5.8** - CSV işleme
-- **Maven** - Bağımlılık yönetimi
 - **Spring Cloud Config** - Yapılandırma yönetimi
+- **PostgreSQL** - Veritabanı
+- **JWT** - Kimlik doğrulama
+- **OpenCSV 5.8** - CSV işleme
+- **Virtual Threads** - Asenkron işleme
+- **Maven** - Bağımlılık yönetimi
 
-### Frontend Stack
+### Frontend
 
-- **React 19.1.0** - UI framework
-- **React Router DOM 7.6.3** - Routing
+- **React 18.2.0** - UI framework
+- **React Router DOM 6.20.1** - Routing
 - **Bootstrap 5.3.7** - CSS framework
-- **Axios** - HTTP client
 - **JavaScript ES6+** - Programlama dili
 
-### DevOps & Araçlar
-
-- **Git** - Versiyon kontrolü
-- **Maven** - Build tool
-- **npm** - Package manager
-
-## 💻 Sistem Gereksinimleri
+## 📋 Sistem Gereksinimleri
 
 ### Minimum Gereksinimler
 
-- **Java:** JDK 21 veya üzeri
-- **Node.js:** 18.0.0 veya üzeri
-- **npm:** 8.0.0 veya üzeri
-- **PostgreSQL:** 12.0 veya üzeri
+- **Java:** JDK 21+
+- **Node.js:** 18.0.0+
+- **npm:** 8.0.0+
+- **PostgreSQL:** 12.0+
 - **RAM:** 4GB
-- **Disk:** 2GB boş alan
+- **Disk:** 2GB
 
 ### Önerilen Gereksinimler
 
 - **Java:** JDK 21
-- **Node.js:** 20.0.0
-- **PostgreSQL:** 15.0
+- **Node.js:** 20.0.0+
+- **PostgreSQL:** 15.0+
 - **RAM:** 8GB
-- **Disk:** 5GB boş alan
+- **Disk:** 5GB
 
-## 🚀 Kurulum ve Çalıştırma
+## 🚀 Hızlı Başlangıç
 
 ### 1. Ön Gereksinimler
 
@@ -126,7 +122,14 @@ CREATE USER student_user WITH PASSWORD 'your_password';
 GRANT ALL PRIVILEGES ON DATABASE student_management TO student_user;
 ```
 
-### 3. Config Server
+### 3. Projeyi Klonlayın
+
+```bash
+git clone https://github.com/mustafa-koroglu/studentProject.git
+cd studentProject
+```
+
+### 4. Config Server'ı Başlatın
 
 ```bash
 cd config-server
@@ -135,7 +138,7 @@ mvn spring-boot:run
 
 Config Server `http://localhost:8888` adresinde çalışacaktır.
 
-### 4. Backend
+### 5. Backend'i Başlatın
 
 ```bash
 cd backend
@@ -148,7 +151,7 @@ mvn spring-boot:run
 
 Backend `http://localhost:8080` adresinde çalışacaktır.
 
-### 5. Frontend
+### 6. Frontend'i Başlatın
 
 ```bash
 cd frontend
@@ -158,119 +161,78 @@ npm start
 
 Frontend `http://localhost:3000` adresinde açılacaktır.
 
+## 🔧 Yapılandırma
+
+### Backend Yapılandırması
+
+`backend/src/main/resources/application.yml` dosyasını düzenleyin:
+
+```yaml
+server:
+  port: 8080
+
+spring:
+  application:
+    name: backend
+
+  cloud:
+    config:
+      uri: http://localhost:8888
+      fail-fast: true
+
+  config:
+    import: "configserver:"
+
+csv:
+  watch:
+    directory: ./csv-files
+```
+
+### Veritabanı Bağlantısı
+
+Config Server'da veritabanı ayarlarını yapılandırın:
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/student_management
+    username: student_user
+    password: your_password
+    driver-class-name: org.postgresql.Driver
+```
+
 ## 📚 API Dokümantasyonu
 
-### Kimlik Doğrulama Endpoint'leri
-
-#### POST /api/v1/auth/register
-
-Yeni kullanıcı kaydı oluşturur.
-
-**Request Body:**
-
-```json
-{
-  "username": "string",
-  "password": "string",
-  "email": "string"
-}
-```
-
-**Response:**
-
-```json
-{
-  "message": "Kullanıcı başarıyla kaydedildi",
-  "timestamp": "2024-01-01T00:00:00"
-}
-```
+### Kimlik Doğrulama
 
 #### POST /api/v1/auth/login
 
-Kullanıcı girişi yapar ve JWT token döner.
-
-**Request Body:**
-
 ```json
 {
-  "username": "string",
-  "password": "string"
+  "username": "admin",
+  "password": "password"
 }
 ```
 
-**Response:**
+#### POST /api/v1/auth/register
 
 ```json
 {
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "username": "string",
-  "expiresIn": 3600
+  "username": "newuser",
+  "password": "password",
+  "email": "user@example.com"
 }
 ```
 
-### Öğrenci Yönetimi Endpoint'leri
+### Öğrenci Yönetimi
 
 #### GET /api/v3/students
 
 Tüm öğrencileri listeler.
 
-**Headers:**
-
-```
-Authorization: Bearer <JWT_TOKEN>
-```
-
-**Query Parameters:**
-
-- `page` (optional): Sayfa numarası (default: 0)
-- `size` (optional): Sayfa boyutu (default: 10)
-- `sort` (optional): Sıralama alanı (default: id)
-
-**Response:**
-
-```json
-{
-  "content": [
-    {
-      "id": 1,
-      "studentNumber": "2024001",
-      "firstName": "Ahmet",
-      "lastName": "Yılmaz",
-      "email": "ahmet@example.com",
-      "phoneNumber": "555-123-4567",
-      "birthDate": "2000-01-01",
-      "department": "Bilgisayar Mühendisliği",
-      "grade": "3.50"
-    }
-  ],
-  "totalElements": 100,
-  "totalPages": 10,
-  "currentPage": 0
-}
-```
-
-#### GET /api/v3/students/{id}
-
-Belirtilen ID'ye sahip öğrenciyi getirir.
-
 #### POST /api/v3/students
 
 Yeni öğrenci ekler.
-
-**Request Body:**
-
-```json
-{
-  "studentNumber": "2024001",
-  "firstName": "Ahmet",
-  "lastName": "Yılmaz",
-  "email": "ahmet@example.com",
-  "phoneNumber": "555-123-4567",
-  "birthDate": "2000-01-01",
-  "department": "Bilgisayar Mühendisliği",
-  "grade": "3.50"
-}
-```
 
 #### PUT /api/v3/students/{id}
 
@@ -280,115 +242,63 @@ Yeni öğrenci ekler.
 
 Öğrenciyi siler.
 
-#### GET /api/v3/students/search
+### IP Adresi Yönetimi
 
-Öğrenci arama yapar.
+#### GET /api/v1/ip-addresses
 
-**Query Parameters:**
+Aktif IP adreslerini listeler.
 
-- `q`: Arama terimi (isim, soyisim veya numara)
+#### POST /api/v1/ip-addresses
 
-### CSV İşleme Endpoint'leri
+Yeni IP adresi ekler.
 
-#### POST /api/v3/csv/upload
+#### PUT /api/v1/ip-addresses/{id}
 
-CSV dosyası yükler ve işler.
+IP adresini günceller.
 
-**Headers:**
+Detaylı API dokümantasyonu için [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) dosyasına bakın.
 
-```
-Content-Type: multipart/form-data
-Authorization: Bearer <JWT_TOKEN>
-```
+## 🌐 IP Adresi Formatları
 
-**Form Data:**
+### Desteklenen Formatlar
 
-- `file`: CSV dosyası
+#### IPv4
 
-## 🗄️ Veritabanı Şeması
-
-### AppUser Tablosu
-
-```sql
-CREATE TABLE app_user (
-    id BIGSERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### Student Tablosu
-
-```sql
-CREATE TABLE student (
-    id BIGSERIAL PRIMARY KEY,
-    student_number VARCHAR(20) UNIQUE NOT NULL,
-    first_name VARCHAR(50) NOT NULL,
-    last_name VARCHAR(50) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    phone_number VARCHAR(20),
-    birth_date DATE,
-    department VARCHAR(100),
-    grade DECIMAL(3,2),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### IpAddress Tablosu
-
-```sql
-CREATE TABLE ip_addresses (
-    id BIGSERIAL PRIMARY KEY,
-    ip_address VARCHAR(45) UNIQUE NOT NULL,
-    description VARCHAR(500),
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-## 🌐 IP Adresi Yönetimi
-
-### Desteklenen IP Formatları
-
-#### IPv4 Formatları
 - **Tekil IP:** `192.168.1.1`
 - **CIDR Subnet:** `192.168.1.0/24`
 - **IP Aralığı:** `192.168.1.1-192.168.1.10`
 
-#### IPv6 Formatları
+#### IPv6
+
 - **Tekil IP:** `2001:db8::1`
 - **CIDR Subnet:** `2001:db8::/32`
 - **IP Aralığı:** `2001:db8::1-2001:db8::10`
 
 ### Özellikler
 
-- **Otomatik Doğrulama:** Gerçek zamanlı IP format doğrulama
-- **Çoklu Format Desteği:** IPv4 ve IPv6 formatlarını aynı anda destekler
-- **CIDR Parsing:** Subnet maskelerini otomatik olarak tekil IP'lere çevirir
-- **Range Parsing:** IP aralıklarını otomatik olarak tekil IP'lere çevirir
-- **Duplicate Prevention:** Aynı IP'nin tekrar eklenmesini engeller
-- **Aktif/Pasif Durum:** IP adreslerini aktif veya pasif yapabilme
-- **Arama ve Filtreleme:** IP adreslerinde arama yapabilme
+- ✅ Otomatik format doğrulama
+- ✅ Network/broadcast adresi kontrolü
+- ✅ Çakışma kontrolü
+- ✅ Otomatik IP atama
 
-### API Endpoints
+## 📊 CSV İşleme
 
-```
-GET    /api/v1/ip-addresses          # Tüm aktif IP adreslerini getir
-GET    /api/v1/ip-addresses/all      # Tüm IP adreslerini getir (aktif/pasif)
-GET    /api/v1/ip-addresses/{id}     # Belirli IP adresini getir
-GET    /api/v1/ip-addresses/search   # IP adreslerinde arama yap
-POST   /api/v1/ip-addresses          # Yeni IP adresi ekle
-PUT    /api/v1/ip-addresses/{id}     # IP adresini güncelle
-DELETE /api/v1/ip-addresses/{id}     # IP adresini sil
-GET    /api/v1/ip-addresses/validate # IP formatını doğrula
+### Desteklenen Format
+
+```csv
+studentNumber,firstName,lastName,email,phoneNumber,birthDate,department,grade
+2024001,Ahmet,Yılmaz,ahmet@example.com,555-123-4567,2000-01-01,Bilgisayar Mühendisliği,3.50
 ```
 
-## 🔒 Güvenlik
+### Özellikler
+
+- ✅ Otomatik dosya izleme (30 saniyede bir)
+- ✅ Hata raporlama (.fail uzantısı)
+- ✅ Başarılı işleme (.done uzantısı)
+- ✅ Virtual thread ile yüksek performans
+- ✅ Toplu veri yükleme
+
+## 🔐 Güvenlik
 
 ### JWT Token Yapısı
 
@@ -406,81 +316,10 @@ GET    /api/v1/ip-addresses/validate # IP formatını doğrula
 }
 ```
 
-### Güvenlik Özellikleri
+### Roller
 
-- JWT tabanlı kimlik doğrulama
-- Şifre hashleme (BCrypt)
-- CORS yapılandırması
-- Role-based access control
-- Token expiration
-- Secure headers
-
-## 📊 CSV İşleme
-
-### Desteklenen CSV Formatı
-
-```csv
-studentNumber,firstName,lastName,email,phoneNumber,birthDate,department,grade
-2024001,Ahmet,Yılmaz,ahmet@example.com,555-123-4567,2000-01-01,Bilgisayar Mühendisliği,3.50
-2024002,Ayşe,Demir,ayse@example.com,555-123-4568,2000-02-01,Elektrik Mühendisliği,3.75
-```
-
-### CSV İşleme Özellikleri
-
-- Otomatik veri doğrulama
-- Hata raporlama
-- Toplu veri yükleme
-- Zamanlanmış işleme
-- Duplicate kontrol
-
-## 👨‍💻 Geliştirme Rehberi
-
-### Kod Standartları
-
-- **Java:** Google Java Style Guide
-- **JavaScript:** ESLint + Prettier
-- **Commit Messages:** Conventional Commits
-
-### Proje Yapısı
-
-#### Backend
-
-```
-src/main/java/com/example/backend/
-├── config/          # Yapılandırma sınıfları
-├── controller/      # REST controller'lar
-├── dataAccess/      # Repository sınıfları
-├── entities/        # JPA entity'leri
-├── exception/       # Exception handler'lar
-├── filter/          # JWT filter'ları
-├── request/         # Request DTO'ları
-├── response/        # Response DTO'ları
-├── scheduler/       # Zamanlanmış görevler
-├── service/         # İş mantığı katmanı
-└── utility/         # Yardımcı sınıflar
-```
-
-#### Frontend
-
-```
-src/
-├── components/      # React bileşenleri
-├── services/        # API servisleri
-├── utils/           # Yardımcı fonksiyonlar
-├── hooks/           # Custom React hooks
-└── styles/          # CSS dosyaları
-```
-
-### Geliştirme Ortamı Kurulumu
-
-```bash
-# Backend için IDE ayarları
-# IntelliJ IDEA veya Eclipse kullanın
-# Lombok plugin'ini yükleyin
-
-# Frontend için
-npm install -g eslint prettier
-```
+- **ADMIN:** Tüm işlemleri yapabilir
+- **USER:** Sadece öğrenci listesini görüntüleyebilir
 
 ## 🧪 Test
 
@@ -498,18 +337,11 @@ cd frontend
 npm test
 ```
 
-### Test Kapsamı
-
-- Unit testler
-- Integration testler
-- API testleri
-- UI testleri
-
 ## 🚀 Dağıtım
 
 ### Docker ile Dağıtım
 
-#### Backend Dockerfile
+#### Backend
 
 ```dockerfile
 FROM openjdk:21-jdk-slim
@@ -518,7 +350,7 @@ EXPOSE 8080
 ENTRYPOINT ["java","-jar","/app.jar"]
 ```
 
-#### Frontend Dockerfile
+#### Frontend
 
 ```dockerfile
 FROM node:18-alpine
@@ -540,6 +372,46 @@ EXPOSE 80
 - **Load Balancer:** Nginx
 - **Monitoring:** Prometheus + Grafana
 
+## 📁 Proje Yapısı
+
+```
+studentProject/
+├── backend/                 # Spring Boot uygulaması
+│   ├── src/main/java/
+│   │   └── com/example/backend/
+│   │       ├── config/      # Yapılandırma sınıfları
+│   │       ├── controller/  # REST controller'lar
+│   │       ├── dataAccess/  # Repository sınıfları
+│   │       ├── entities/    # JPA entity'leri
+│   │       ├── exception/   # Exception handler'lar
+│   │       ├── filter/      # JWT filter'ları
+│   │       ├── request/     # Request DTO'ları
+│   │       ├── response/    # Response DTO'ları
+│   │       ├── scheduler/   # Zamanlanmış görevler
+│   │       ├── service/     # İş mantığı katmanı
+│   │       └── utility/     # Yardımcı sınıflar
+│   └── src/main/resources/
+│       └── application.yml
+├── frontend/                # React uygulaması
+│   ├── src/
+│   │   ├── components/      # React bileşenleri
+│   │   ├── hooks/           # Custom React hooks
+│   │   └── utils/           # Yardımcı fonksiyonlar
+│   └── package.json
+├── config-server/           # Spring Cloud Config
+├── csv-files/               # CSV dosyaları
+├── docs/                    # Dokümantasyon
+└── README.md
+```
+
+## 📖 Dokümantasyon
+
+- **[API Dokümantasyonu](docs/API_DOCUMENTATION.md)** - REST API referansı
+- **[Geliştirme Rehberi](docs/DEVELOPMENT_GUIDE.md)** - Geliştirme ortamı kurulumu
+- **[Dağıtım Rehberi](docs/DEPLOYMENT_GUIDE.md)** - Production dağıtımı
+- **[Katkıda Bulunma](docs/CONTRIBUTING.md)** - Projeye katkı süreci
+- **[Changelog](docs/CHANGELOG.md)** - Sürüm geçmişi
+
 ## 🤝 Katkıda Bulunma
 
 1. Fork yapın
@@ -548,12 +420,7 @@ EXPOSE 80
 4. Branch'inizi push edin (`git push origin feature/amazing-feature`)
 5. Pull Request oluşturun
 
-### Katkı Rehberi
-
-- Kod standartlarına uyun
-- Test yazın
-- Dokümantasyonu güncelleyin
-- Issue template'ini kullanın
+Detaylı katkı rehberi için [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) dosyasına bakın.
 
 ## 📄 Lisans
 
@@ -561,9 +428,9 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICE
 
 ## 📞 İletişim
 
-- **Proje Sahibi:** [Adınız]
-- **Email:** [email@example.com]
-- **GitHub:** [github.com/username]
+- **Proje Sahibi:** Mustafa Köroğlu
+- **Email:** mustafaa.korogluu@gmail.com
+- **GitHub:** [@mustafa-koroglu](https://github.com/mustafa-koroglu)
 
 ## 🙏 Teşekkürler
 

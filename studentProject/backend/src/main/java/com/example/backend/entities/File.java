@@ -1,4 +1,4 @@
-package com.example.backend.entities; // Entity paketi
+package com.example.backend.entities;
 
 import jakarta.persistence.*; // JPA anotasyonları
 import lombok.AllArgsConstructor; // Tüm alanlar için constructor
@@ -8,55 +8,55 @@ import org.hibernate.annotations.CreationTimestamp; // Oluşturma zaman damgası
 
 import java.time.LocalDateTime; // Yerel tarih zaman
 
-@Entity // JPA entity anotasyonu
-@Table(name = "files") // Tablo adı
-@Data // Lombok data anotasyonu
-@NoArgsConstructor // Parametresiz constructor
-@AllArgsConstructor // Tüm alanlar için constructor
-public class File { // Dosya entity sınıfı
+@Entity
+@Table(name = "files")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class File {
 
-    @Id // Primary key anotasyonu
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Otomatik artan ID
-    private Long id; // Dosya ID'si
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column(name = "file_name", nullable = false) // Dosya adı sütunu
-    private String fileName; // Dosya adı
+    @Column(name = "file_name", nullable = false)
+    private String fileName;
 
-    @Column(name = "full_file_name", nullable = false) // Tam dosya adı sütunu
-    private String fullFileName; // Tam dosya adı
+    @Column(name = "full_file_name", nullable = false)
+    private String fullFileName;
 
-    @Enumerated(EnumType.STRING) // Enum string olarak sakla
-    @Column(name = "status", nullable = false) // Durum sütunu
-    private FileStatus status; // Dosya durumu
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private FileStatus status;
 
-    @CreationTimestamp // Oluşturma zaman damgası
-    @Column(name = "processed_at", nullable = false) // İşlenme tarihi sütunu
-    private LocalDateTime processedAt; // Dosya işlenme tarihi
+    @CreationTimestamp
+    @Column(name = "processed_at", nullable = false)
+    private LocalDateTime processedAt;
 
-    @Column(name = "student_count") // Öğrenci sayısı sütunu
-    private Integer studentCount; // İşlenen öğrenci sayısı
+    @Column(name = "student_count")
+    private Integer studentCount;
 
-    @Column(name = "description", length = 1000) // Açıklama sütunu
-    private String description; // Dosya açıklaması
+    @Column(name = "description", length = 1000)
+    private String description;
 
-    public enum FileStatus { // Dosya durumu enum'u
-        DONE, // Başarıyla işlendi
-        FAIL // Hata ile işlendi
+    public enum FileStatus {
+        DONE,
+        FAIL
     }
 
-    public File(String fileName, String fullFileName, int studentCount, String description) { // DONE durumu için kurucu
-        this.fileName = fileName; // Dosya adını ayarla
-        this.fullFileName = fullFileName; // Tam dosya adını ayarla
-        this.status = FileStatus.DONE; // Durumu DONE yap
-        this.studentCount = studentCount; // Öğrenci sayısını ayarla
-        this.description = description; // Açıklamayı ayarla
+    public File(String fileName, String fullFileName, int studentCount, String description) {
+        this.fileName = fileName;
+        this.fullFileName = fullFileName;
+        this.status = FileStatus.DONE;
+        this.studentCount = studentCount;
+        this.description = description;
     }
 
-    public File(String fileName, String fullFileName, String errorDescription) { // FAIL durumu için kurucu
-        this.fileName = fileName; // Dosya adını ayarla
-        this.fullFileName = fullFileName; // Tam dosya adını ayarla
-        this.status = FileStatus.FAIL; // Durumu FAIL yap
-        this.studentCount = 0; // Öğrenci sayısını 0 yap
-        this.description = errorDescription; // Hata açıklamasını ayarla
+    public File(String fileName, String fullFileName, String errorDescription) {
+        this.fileName = fileName;
+        this.fullFileName = fullFileName;
+        this.status = FileStatus.FAIL;
+        this.studentCount = 0;
+        this.description = errorDescription;
     }
 } 

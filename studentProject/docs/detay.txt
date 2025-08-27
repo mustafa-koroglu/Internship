@@ -1,74 +1,213 @@
-📚 Eklenen Dokümantasyon Dosyaları
-1. Ana README.md (Güncellendi)
-Proje genel bakışı ve mimarisi
-Kullanılan teknolojiler
-Sistem gereksinimleri
-Kurulum ve çalıştırma talimatları
-API dokümantasyonu
-Veritabanı şeması
-Güvenlik bilgileri
-CSV işleme
-Geliştirme rehberi
-Test ve dağıtım bilgileri
-2. docs/API_DOCUMENTATION.md
-Detaylı API endpoint'leri
-Request/Response örnekleri
-Hata kodları
-cURL, JavaScript ve Python örnekleri
-Kimlik doğrulama bilgileri
-Validation kuralları
-3. docs/DEPLOYMENT_GUIDE.md
-Docker ile dağıtım
-Cloud platformları (AWS, GCP, Azure)
-Production ortamı kurulumu
-Monitoring ve logging
-Backup ve recovery
-Güvenlik kontrolleri
-4. docs/DEVELOPMENT_GUIDE.md
-Geliştirme ortamı kurulumu
-Kod standartları (Java ve React)
-Git workflow
-Test yazma rehberi
-Code review süreci
-Performance optimizasyonu
-Security best practices
-Troubleshooting
-5. docs/CONTRIBUTING.md
-Katkıda bulunma süreci
-Branch stratejisi
-Commit message conventions
-Pull request süreci
-Issue raporlama
-Code review checklist
-6. docs/CHANGELOG.md
-Sürüm geçmişi
-Semantic versioning
-Değişiklik türleri
-Katkıda bulunma rehberi
-7. docs/README.md (Docs klasörü index'i)
-Dokümantasyon listesi
-Hızlı başlangıç rehberleri
-Dokümantasyon standartları
-Arama ve organizasyon
-�� Dokümantasyonun Özellikleri
-✅ Kapsamlı İçerik
-Teknik Detaylar: API, veritabanı, güvenlik
-Geliştirme Rehberleri: Kurulum, standartlar, best practices
-Operasyonel: Dağıtım, monitoring, backup
-Topluluk: Katkıda bulunma, issue raporlama
-✅ Kullanıcı Dostu
-Emoji Kullanımı: Bölümleri ayırmak için
-İçindekiler: Her dosyada navigasyon
-Kod Örnekleri: Pratik kullanım için
-Hızlı Başlangıç: Farklı kullanıcı tipleri için
-✅ Profesyonel Standartlar
-Markdown Formatı: GitHub uyumlu
-Semantic Versioning: Sürüm yönetimi
-Conventional Commits: Git standartları
-Code Review: Kalite kontrolü
-✅ Güncellenebilir
-Modüler Yapı: Her konu ayrı dosyada
-Template'ler: Yeni dokümantasyon için
-Changelog: Değişiklik takibi
-Katkı Rehberi: Topluluk katılımı
-Bu dokümantasyon, projenizin profesyonel bir şekilde sunulmasını sağlayacak ve yeni geliştiricilerin projeye katılmasını kolaylaştıracaktır. Ayrıca, production ortamında dağıtım ve bakım süreçlerini de destekleyecektir.
+# 📋 Öğrenci Yönetim Sistemi - Detay Bilgileri
+
+## 🎯 Proje Amacı
+
+Bu proje, eğitim kurumları için geliştirilmiş kapsamlı bir öğrenci yönetim sistemidir. Öğrenci kayıtları, ders yönetimi, IP adresi atama ve CSV dosya işleme özelliklerini içeren modern bir web uygulamasıdır.
+
+## 🏗️ Sistem Mimarisi
+
+### Mikroservis Yapısı
+- **Frontend:** React 18.2.0 (Port: 3000)
+- **Backend:** Spring Boot 3.3.0 (Port: 8080)
+- **Config Server:** Spring Cloud Config (Port: 8888)
+- **Database:** PostgreSQL
+
+### Teknoloji Stack
+- **Backend:** Java 21, Spring Boot, Spring Security, JPA
+- **Frontend:** React, Bootstrap 5.3.7, JavaScript ES6+
+- **Database:** PostgreSQL
+- **Authentication:** JWT (JSON Web Tokens)
+- **CSV Processing:** OpenCSV 5.8
+- **Build Tools:** Maven, npm
+
+## 🚀 Ana Özellikler
+
+### 1. Öğrenci Yönetimi
+- Öğrenci kayıt ve güncelleme
+- Öğrenci listesi görüntüleme
+- Arama ve filtreleme
+- Öğrenci onaylama sistemi
+- CSV dosyalarından toplu veri yükleme
+
+### 2. Ders Yönetimi
+- Ders ekleme ve düzenleme
+- Öğrenci-ders ilişkilendirme
+- Ders listesi yönetimi
+
+### 3. IP Adresi Yönetimi
+- IPv4/IPv6 adresi desteği
+- CIDR subnet yönetimi
+- IP aralığı tanımlama
+- Otomatik IP atama
+- Öğrenci-IP ilişkilendirme
+- Network/broadcast adresi kontrolü
+
+### 4. Güvenlik
+- JWT tabanlı kimlik doğrulama
+- Role-based access control (ADMIN/USER)
+- Güvenli şifre hashleme (BCrypt)
+- CORS yapılandırması
+
+### 5. CSV İşleme
+- Otomatik CSV dosya izleme (30 saniyede bir)
+- Toplu veri yükleme
+- Hata raporlama (.fail/.done uzantıları)
+- Virtual thread ile yüksek performans
+
+## 📊 Veritabanı Şeması
+
+### Tablolar
+1. **app_user** - Kullanıcı bilgileri
+2. **student** - Öğrenci bilgileri
+3. **lesson** - Ders bilgileri
+4. **ip_addresses** - IP adresi bilgileri
+5. **file** - Dosya işleme kayıtları
+
+## 🔐 Güvenlik Özellikleri
+
+### Kimlik Doğrulama
+- JWT token tabanlı authentication
+- Role-based authorization
+- Secure password hashing
+- CORS configuration
+
+### Roller
+- **ADMIN:** Tüm işlemleri yapabilir
+- **USER:** Sadece öğrenci listesini görüntüleyebilir
+
+## 📈 Performans Özellikleri
+
+### Optimizasyonlar
+- Virtual thread executor
+- Stream API kullanımı
+- Optimize edilmiş IP validasyon
+- Asenkron CSV işleme
+- Database connection pooling
+- Query optimization
+
+## 🌐 API Endpoints
+
+### Kimlik Doğrulama
+- POST /api/v1/auth/login
+- POST /api/v1/auth/register
+
+### Öğrenci Yönetimi
+- GET /api/v3/students
+- POST /api/v3/students
+- PUT /api/v3/students/{id}
+- DELETE /api/v3/students/{id}
+- GET /api/v3/students/search
+
+### IP Adresi Yönetimi
+- GET /api/v1/ip-addresses
+- POST /api/v1/ip-addresses
+- PUT /api/v1/ip-addresses/{id}
+- DELETE /api/v1/ip-addresses/{id}
+
+## 📁 Proje Yapısı
+
+```
+studentProject/
+├── backend/                 # Spring Boot uygulaması
+│   ├── src/main/java/
+│   │   └── com/example/backend/
+│   │       ├── config/      # Yapılandırma sınıfları
+│   │       ├── controller/  # REST controller'lar
+│   │       ├── dataAccess/  # Repository sınıfları
+│   │       ├── entities/    # JPA entity'leri
+│   │       ├── exception/   # Exception handler'lar
+│   │       ├── filter/      # JWT filter'ları
+│   │       ├── request/     # Request DTO'ları
+│   │       ├── response/    # Response DTO'ları
+│   │       ├── scheduler/   # Zamanlanmış görevler
+│   │       ├── service/     # İş mantığı katmanı
+│   │       └── utility/     # Yardımcı sınıflar
+│   └── src/main/resources/
+│       └── application.yml
+├── frontend/                # React uygulaması
+│   ├── src/
+│   │   ├── components/      # React bileşenleri
+│   │   ├── hooks/           # Custom React hooks
+│   │   └── utils/           # Yardımcı fonksiyonlar
+│   └── package.json
+├── config-server/           # Spring Cloud Config
+├── csv-files/               # CSV dosyaları
+├── docs/                    # Dokümantasyon
+└── README.md
+```
+
+## 🚀 Kurulum ve Çalıştırma
+
+### Gereksinimler
+- Java 21+
+- Node.js 18.0.0+
+- PostgreSQL 12.0+
+- Maven
+- npm
+
+### Kurulum Adımları
+1. Veritabanı kurulumu
+2. Config Server başlatma
+3. Backend başlatma
+4. Frontend başlatma
+
+## 📊 Sistem Gereksinimleri
+
+### Minimum
+- RAM: 4GB
+- Disk: 2GB
+- CPU: 2 çekirdek
+
+### Önerilen
+- RAM: 8GB
+- Disk: 5GB
+- CPU: 4 çekirdek
+
+## 🔄 Geliştirme Süreci
+
+### Kod Standartları
+- Java: Google Java Style Guide
+- JavaScript: ESLint + Prettier
+- Commit Messages: Conventional Commits
+
+### Test Stratejisi
+- Unit testler
+- Integration testler
+- API testler
+- UI testler
+
+## 📈 Gelecek Planları
+
+### Kısa Vadeli (1-3 ay)
+- Kullanıcı profil yönetimi
+- Gelişmiş raporlama
+- Email bildirimleri
+- API rate limiting
+
+### Orta Vadeli (3-6 ay)
+- Mobil uygulama
+- Real-time notifications
+- Advanced analytics
+- Multi-language support
+
+### Uzun Vadeli (6+ ay)
+- Microservices architecture
+- Cloud deployment
+- AI-powered features
+- Third-party integrations
+
+## 📞 Destek ve İletişim
+
+- **GitHub Issues:** Proje sorunları için
+- **GitHub Discussions:** Genel tartışmalar için
+- **Email:** mustafaa.korogluu@gmail.com
+
+## 📄 Lisans
+
+Bu proje MIT lisansı altında lisanslanmıştır.
+
+---
+
+**Son Güncelleme:** 2024-01-15
+**Versiyon:** 1.0.0
+**Durum:** Stable

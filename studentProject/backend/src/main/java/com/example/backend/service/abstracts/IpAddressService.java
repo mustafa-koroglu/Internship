@@ -39,5 +39,17 @@ public interface IpAddressService {
 
     // IP adresinin veritabanında var olup olmadığını kontrol eden metod
     boolean existsByIpAddress(String ipAddress);
+
+    // Öğrenciye IP adresleri atayan metod
+    void assignIpAddressesToStudent(Integer studentId, List<Long> ipAddressIds);
+
+    // Atanmamış (öğrenciye atanmamış) aktif IP adreslerini getiren metod
+    List<IpAddressResponse> findUnassignedActive();
+
+    // Atanmamış (öğrenciye atanmamış) aktif IPv4 adreslerini getiren metod
+    List<IpAddressResponse> findUnassignedActiveIpv4();
+
+    // Öğrenciye otomatik IP adresi atayan metod (rastgele seçim)
+    IpAddressResponse assignRandomIpAddressToStudent(Integer studentId);
 }
 

@@ -1,4 +1,4 @@
-package com.example.backend.config; // Config paketi
+package com.example.backend.config;
 
 import org.springframework.beans.factory.annotation.Autowired; // Autowired anotasyonu
 import org.springframework.context.annotation.Bean; // Bean anotasyonu
@@ -13,43 +13,45 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // BCrypt şifre encoder'ı
 import org.springframework.security.crypto.password.PasswordEncoder; // Şifre encoder arayüzü
 
-@Configuration // Spring configuration anotasyonu
-@EnableWebSecurity // Web güvenliği aktif et
-public class SecurityConfig { // Güvenlik yapılandırma sınıfı
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
 
-    @Autowired // Bağımlılık enjeksiyonu
-    private CorsConfigurationSource corsConfigurationSource; // CORS yapılandırma kaynağı
+    @Autowired
+    private CorsConfigurationSource corsConfigurationSource;
 
-    @Autowired // Bağımlılık enjeksiyonu
-    private JwtAuthenticationFilter jwtAuthenticationFilter; // JWT kimlik doğrulama filtresi
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Bean // Spring bean tanımı
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception { // Güvenlik filtre zinciri metodu
-        http // HTTP güvenlik yapılandırması
-            .csrf(csrf -> csrf.disable()) // CSRF korumasını devre dışı bırak
-            .cors(cors -> cors.configurationSource(corsConfigurationSource)) // CORS yapılandırmasını uygula
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Oturum yönetimini stateless yap
-            .authorizeHttpRequests(auth -> auth // Yetkilendirme kurallarını tanımla
-                .requestMatchers("/auth/**", "/api/public", "/test/public", "/api/test/integration/**").permitAll() // Kimlik doğrulama gerektirmeyen endpointler
-                .requestMatchers("/api/v1/teachers/**").permitAll() // Teacher endpoint'leri için izin ver
-                .requestMatchers("/api/v3/students").hasAnyRole("ADMIN", "USER") // Öğrenci listeleme için ADMIN veya USER
-                .requestMatchers("/api/v3/students/search**").hasAnyRole("ADMIN", "USER") // Öğrenci arama için ADMIN veya USER
-                .requestMatchers("/api/v3/students/verified").hasAnyRole("ADMIN", "USER") // Onaylanmış öğrenciler için ADMIN veya USER
-                .requestMatchers("/api/v3/students/verified/search**").hasAnyRole("ADMIN", "USER") // Onaylanmış öğrenci arama için ADMIN veya USER
-                .requestMatchers("/api/v3/students/unverified").hasRole("ADMIN") // Onaylanmamış öğrenciler için sadece ADMIN
-                .requestMatchers("/api/v3/students/*/approve").hasRole("ADMIN") // Öğrenci onaylama için sadece ADMIN
-                .requestMatchers("/api/v3/students/*/visibility").hasRole("ADMIN") // Öğrenci görünürlük için sadece ADMIN
-                .requestMatchers("/api/v3/students/**").hasRole("ADMIN") // Diğer öğrenci işlemleri için sadece ADMIN
-                .requestMatchers("/api/v3/files/**").hasRole("ADMIN") // Dosya işlemleri için sadece ADMIN
-                .anyRequest().authenticated() // Diğer tüm istekler için kimlik doğrulama gerekir
-            )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // JWT filtresini ekle
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/**", "/api/public", "/test/public", "/api/test/integration/**").permitAll()
+                        .requestMatchers("/api/v1/teachers/**").permitAll()
+                        .requestMatchers("/api/v1/ip-addresses/**").hasRole("ADMIN")
+                        .requestMatchers("/api/lessons/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v3/students").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/api/v3/students/search**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/api/v3/students/verified").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/api/v3/students/verified/search**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/api/v3/students/unverified").hasRole("ADMIN")
+                        .requestMatchers("/api/v3/students/*/approve").hasRole("ADMIN")
+                        .requestMatchers("/api/v3/students/*/visibility").hasRole("ADMIN")
+                        .requestMatchers("/api/v3/students/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v3/files/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build(); // Güvenlik filtre zincirini oluştur ve döndür
+        return http.build();
     }
 
-    @Bean // Spring bean tanımı
-    public PasswordEncoder passwordEncoder() { // Şifre encoder bean metodu
-        return new BCryptPasswordEncoder(); // BCrypt encoder döndür
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

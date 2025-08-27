@@ -1,4 +1,3 @@
-// Uygulamanın ana bileşeni ve yönlendirme yapısı
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Login from "./Login";
@@ -11,7 +10,6 @@ function App() {
   const [role, setRole] = useState(localStorage.getItem("role") || null);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
 
-  // Modal açıkken body scroll'unu engelle
   useEffect(() => {
     const modals = document.querySelectorAll(".modal.show");
     if (modals.length > 0) {
@@ -34,8 +32,15 @@ function App() {
     setRole(null);
   };
 
+  const isAdmin = role === "ADMIN";
+
   return (
-    <Router>
+    <Router
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true
+      }}
+    >
       {role && (
         <nav className="navbar navbar-dark bg-dark">
           <div className="container-fluid">
@@ -46,7 +51,7 @@ function App() {
               <Link to="/students" className="btn btn-outline-light">
                 Öğrenci Listesi
               </Link>
-              {role === "ADMIN" && (
+              {isAdmin && (
                 <>
                   <Link to="/lessons" className="btn btn-outline-light">
                     Ders Yönetimi
@@ -58,7 +63,7 @@ function App() {
               )}
             </div>
             <div className="d-flex align-items-center gap-2">
-              {role === "ADMIN" && (
+              {isAdmin && (
                 <button
                   className="btn btn-warning"
                   onClick={() => setShowRegisterModal(true)}
@@ -73,9 +78,11 @@ function App() {
           </div>
         </nav>
       )}
+      
       {showRegisterModal && (
         <RegisterModal onClose={() => setShowRegisterModal(false)} />
       )}
+      
       <Routes>
         <Route
           path="/"
@@ -89,7 +96,7 @@ function App() {
                   <Link to="/students" className="btn btn-primary me-3">
                     Öğrenci Listesi
                   </Link>
-                  {role === "ADMIN" && (
+                  {isAdmin && (
                     <>
                       <Link to="/lessons" className="btn btn-success me-3">
                         Ders Yönetimi

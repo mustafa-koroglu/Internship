@@ -1,122 +1,85 @@
 import React, { useState, useEffect } from "react";
+import { apiPut } from "./utils/api";
 
-const IpAddressEditModal = ({ ipAddress, onSubmit, onValidate, onClose }) => {
+function IpAddressEditModal({ ipAddress, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
-    ipInput: "",
+    ipAddress: "",
     description: "",
-    isActive: true,
   });
-  const [validation, setValidation] = useState({
-    isValid: false,
-    message: "",
-    ipCount: 0,
-    ips: [],
-    inputTypeDescription: "",
-  });
-  const [isValidating, setIsValidating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (ipAddress) {
       setFormData({
-        ipInput: ipAddress.ipAddress,
+        ipAddress: ipAddress.ipAddress || "",
         description: ipAddress.description || "",
-        isActive: ipAddress.isActive,
-      });
-      setValidation({
-        isValid: true,
-        message: "Mevcut IP adresi",
-        ipCount: 1,
-        ips: [ipAddress.ipAddress],
-        inputTypeDescription: "Tekil IP Adresi",
       });
     }
   }, [ipAddress]);
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-
-    if (name === "ipInput" && value.trim()) {
-      validateIpInput(value);
-    } else if (name === "ipInput" && !value.trim()) {
-      setValidation({
-        isValid: false,
-        message: "",
-        ipCount: 0,
-        ips: [],
-        inputTypeDescription: "",
-      });
-    }
-  };
-
-  const validateIpInput = async (ipInput) => {
-    if (!ipInput.trim()) return;
-
-    setIsValidating(true);
-    try {
-      const result = await onValidate(ipInput);
-      if (result.success) {
-        setValidation({
-          isValid: true,
-          message: `Geçerli format! ${result.data.ipCount} IP adresi eklenecek.`,
-          ipCount: result.data.ipCount,
-          ips: result.data.ips || [],
-          inputTypeDescription: result.data.inputTypeDescription || "",
-        });
-      } else {
-        setValidation({
-          isValid: false,
-          message: result.error,
-          ipCount: 0,
-          ips: [],
-          inputTypeDescription: "",
-        });
-      }
-    } catch (error) {
-      setValidation({
-        isValid: false,
-        message: "Doğrulama sırasında hata oluştu",
-        ipCount: 0,
-        ips: [],
-        inputTypeDescription: "",
-      });
-    } finally {
-      setIsValidating(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validation.isValid) {
-      alert("Lütfen geçerli bir IP adresi girin");
+    if (!formData.ipAddress.trim()) {
+      setError("IP adresi boş olamaz");
+      return;
+    }
+
+    // Aynı IP adresi ile güncelleme yapılıyorsa hata verme
+    if (
+      formData.ipAddress === ipAddress.ipAddress &&
+      formData.description === ipAddress.description
+    ) {
+      setError("Değişiklik yapmadınız");
       return;
     }
 
     setIsSubmitting(true);
+    setError("");
+
     try {
-      const result = await onSubmit(
-        ipAddress.id,
-        formData.ipInput,
-        formData.description,
-        formData.isActive
-      );
-      if (result.success) {
-        alert("IP adresi başarıyla güncellendi!");
-        onClose();
+      const updatedIp = await apiPut(`/v1/ip-addresses/${ipAddress.id}`, {
+        ipInput: formData.ipAddress,
+        description: formData.description,
+      });
+
+      onSuccess(updatedIp);
+      onClose();
+    } catch (err) {
+      let errorMessage = "IP adresi güncellenemedi";
+
+      if (err.message.includes("Gecersiz IP formatı")) {
+        errorMessage = "Hatalı IP adresi formatı";
+      } else if (err.message.includes("Bu IP adresi kaydedilemez")) {
+        errorMessage = "Bu IP adresi kaydedilemez";
+      } else if (err.message.includes("network, broadcast veya özel adres")) {
+        errorMessage = "Bu IP adresi kaydedilemez";
+      } else if (err.message.includes("Zaten mevcut")) {
+        errorMessage = "Bu IP adresi kaydedilemez";
+      } else if (err.message.includes("parse edilemedi")) {
+        errorMessage = "IP adresi formatı tanınmıyor";
+      } else if (err.message.includes("API çağrısı başarısız")) {
+        errorMessage = "Bu IP adresi kaydedilemez";
       } else {
-        alert(`Hata: ${result.error}`);
+        errorMessage = err.message;
       }
-    } catch (error) {
-      alert("IP adresi güncellenirken hata oluştu");
+
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  if (!ipAddress) return null;
 
   return (
     <div
@@ -125,7 +88,7 @@ const IpAddressEditModal = ({ ipAddress, onSubmit, onValidate, onClose }) => {
       tabIndex="-1"
     >
       <div
-        className="modal-dialog modal-lg"
+        className="modal-dialog"
         style={{ zIndex: 1055 }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -142,141 +105,47 @@ const IpAddressEditModal = ({ ipAddress, onSubmit, onValidate, onClose }) => {
 
           <form onSubmit={handleSubmit}>
             <div className="modal-body">
-              <div className="row">
-                <div className="col-12 mb-3">
-                  <label htmlFor="ipInput" className="form-label">
-                    IP Adresi <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    className={`form-control ${
-                      validation.isValid
-                        ? "is-valid"
-                        : validation.message
-                        ? "is-invalid"
-                        : ""
-                    }`}
-                    id="ipInput"
-                    name="ipInput"
-                    value={formData.ipInput}
-                    onChange={handleInputChange}
-                    placeholder="192.168.1.1, 2001:db8::1, 192.168.1.0/24, 2001:db8::/32"
-                    required
-                    disabled={isSubmitting}
-                  />
-                  <div className="form-text">
-                    <strong>Desteklenen formatlar:</strong>
-                    <br />
-                    <strong>IPv4:</strong>
-                    <br />
-                    • Tekil IP: 192.168.1.1
-                    <br />
-                    • CIDR: 192.168.1.0/24
-                    <br />
-                    • IP Aralığı: 192.168.1.1-192.168.1.10
-                    <br />
-                    <strong>IPv6:</strong>
-                    <br />
-                    • Tekil IP: 2001:db8::1
-                    <br />
-                    • CIDR: 2001:db8::/32
-                    <br />• IP Aralığı: 2001:db8::1-2001:db8::10
-                  </div>
-                  {isValidating && (
-                    <div className="mt-2">
-                      <small className="text-info">
-                        <i className="fas fa-spinner fa-spin me-1"></i>
-                        Doğrulanıyor...
-                      </small>
-                    </div>
-                  )}
-                  {validation.message && (
-                    <div
-                      className={`mt-2 ${
-                        validation.isValid ? "text-success" : "text-danger"
-                      }`}
-                    >
-                      <small>
-                        <i
-                          className={`fas ${
-                            validation.isValid
-                              ? "fa-check"
-                              : "fa-exclamation-triangle"
-                          } me-1`}
-                        ></i>
-                        {validation.message}
-                        {validation.inputTypeDescription && (
-                          <span className="ms-2 text-muted">
-                            (Format: {validation.inputTypeDescription})
-                          </span>
-                        )}
-                      </small>
-                    </div>
-                  )}
+              {error && (
+                <div className="alert alert-danger" role="alert">
+                  {error}
                 </div>
+              )}
 
-                <div className="col-12 mb-3">
-                  <label htmlFor="description" className="form-label">
-                    Açıklama
-                  </label>
-                  <textarea
-                    className="form-control"
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    placeholder="IP adresi için açıklama (opsiyonel)"
-                    rows="3"
-                    maxLength="500"
-                    disabled={isSubmitting}
-                  ></textarea>
-                  <div className="form-text">
-                    {formData.description.length}/500 karakter
-                  </div>
+              <div className="mb-3">
+                <label htmlFor="ipAddress" className="form-label">
+                  IP Adresi <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="ipAddress"
+                  name="ipAddress"
+                  value={formData.ipAddress}
+                  onChange={handleChange}
+                  placeholder="192.168.1.1, 192.168.1.0/24, 192.168.1.1-192.168.1.10"
+                  required
+                  disabled={isSubmitting}
+                />
+                <div className="form-text">
+                  Tekil IP adresi, CIDR subnet veya IP aralığı formatında
+                  girebilirsiniz
                 </div>
+              </div>
 
-                <div className="col-12 mb-3">
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="isActive"
-                      name="isActive"
-                      checked={formData.isActive}
-                      onChange={handleInputChange}
-                      disabled={isSubmitting}
-                    />
-                    <label className="form-check-label" htmlFor="isActive">
-                      Aktif
-                    </label>
-                  </div>
-                  <div className="form-text">
-                    Bu IP adresinin aktif olup olmadığını belirler
-                  </div>
-                </div>
-
-                {validation.isValid && validation.ips.length > 0 && (
-                  <div className="col-12 mb-3">
-                    <label className="form-label">
-                      Eklenecek IP Adresleri ({validation.ipCount})
-                    </label>
-                    <div
-                      className="border rounded p-2 bg-light"
-                      style={{ maxHeight: "200px", overflowY: "auto" }}
-                    >
-                      <div className="row">
-                        {validation.ips.map((ip, index) => (
-                          <div
-                            key={index}
-                            className="col-md-3 col-sm-4 col-6 mb-1"
-                          >
-                            <code className="text-primary">{ip}</code>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
+              <div className="mb-3">
+                <label htmlFor="description" className="form-label">
+                  Açıklama
+                </label>
+                <textarea
+                  className="form-control"
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  placeholder="IP adresi açıklaması..."
+                  rows="3"
+                  disabled={isSubmitting}
+                ></textarea>
               </div>
             </div>
 
@@ -292,27 +161,27 @@ const IpAddressEditModal = ({ ipAddress, onSubmit, onValidate, onClose }) => {
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={!validation.isValid || isSubmitting}
+                disabled={isSubmitting}
               >
                 {isSubmitting ? (
                   <>
-                    <i className="fas fa-spinner fa-spin me-1"></i>
+                    <span
+                      className="spinner-border spinner-border-sm me-2"
+                      role="status"
+                      aria-hidden="true"
+                    ></span>
                     Güncelleniyor...
                   </>
                 ) : (
-                  <>
-                    <i className="fas fa-save me-1"></i>
-                    Güncelle
-                  </>
+                  "Güncelle"
                 )}
               </button>
             </div>
           </form>
         </div>
       </div>
-      <div className="modal-backdrop fade show" style={{ zIndex: 1040 }}></div>
     </div>
   );
-};
+}
 
 export default IpAddressEditModal;

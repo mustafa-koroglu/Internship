@@ -5,7 +5,7 @@ const IpAddressForm = ({ onSubmit, onValidate, onClose }) => {
     ipInput: "",
     description: "",
   });
-  
+
   const [validation, setValidation] = useState({
     isValid: false,
     message: "",
@@ -13,13 +13,13 @@ const IpAddressForm = ({ onSubmit, onValidate, onClose }) => {
     ips: [],
     inputTypeDescription: "",
   });
-  
+
   const [isValidating, setIsValidating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -42,22 +42,30 @@ const IpAddressForm = ({ onSubmit, onValidate, onClose }) => {
     if (!ipInput.trim()) return;
 
     setIsValidating(true);
-    
+
     try {
       const result = await onValidate(ipInput);
-      
+
       if (result.success) {
         setValidation({
           isValid: true,
-          message: `Geçerli format! ${result.data.ipCount} IP adresi eklenecek.`,
+          message: `Geçerli format! IP adresi eklenecek.`,
           ipCount: result.data.ipCount,
           ips: result.data.ips || [],
           inputTypeDescription: result.data.inputTypeDescription || "",
         });
       } else {
+        // Hata mesajını özelleştir
+        let errorMessage = result.error;
+        if (result.error.includes("Bu IP adresi zaten mevcut")) {
+          errorMessage = "Bu IP adresi kaydedilemez";
+        } else if (result.error.includes("Bu IP adresi kaydedilemez")) {
+          errorMessage = "Bu IP adresi kaydedilemez";
+        }
+
         setValidation({
           isValid: false,
-          message: result.error,
+          message: errorMessage,
           ipCount: 0,
           ips: [],
           inputTypeDescription: "",
@@ -85,10 +93,10 @@ const IpAddressForm = ({ onSubmit, onValidate, onClose }) => {
     }
 
     setIsSubmitting(true);
-    
+
     try {
       const result = await onSubmit(formData.ipInput, formData.description);
-      
+
       if (result.success) {
         alert("IP adresi başarıyla eklendi!");
         onClose();
@@ -155,7 +163,7 @@ const IpAddressForm = ({ onSubmit, onValidate, onClose }) => {
                     <br />
                     • Tekil IP: 192.168.1.1
                     <br />
-                    • CIDR: 192.168.1.0/24
+                    • CIDR Subnet: 192.168.1.0/24
                     <br />
                     • IP Aralığı: 192.168.1.1-192.168.1.10
                     <br />
@@ -163,9 +171,8 @@ const IpAddressForm = ({ onSubmit, onValidate, onClose }) => {
                     <br />
                     • Tekil IP: 2001:db8::1
                     <br />
-                    • CIDR: 2001:db8::/32
-                    <br />
-                    • IP Aralığı: 2001:db8::1-2001:db8::10
+                    • CIDR Subnet: 2001:db8::/32
+                    <br />• IP Aralığı: 2001:db8::1-2001:db8::10
                   </div>
                   {isValidating && (
                     <div className="mt-2">
@@ -222,23 +229,9 @@ const IpAddressForm = ({ onSubmit, onValidate, onClose }) => {
 
                 {validation.isValid && validation.ips.length > 0 && (
                   <div className="col-12 mb-3">
-                    <label className="form-label">
-                      Eklenecek IP Adresleri ({validation.ipCount})
-                    </label>
-                    <div
-                      className="border rounded p-2 bg-light"
-                      style={{ maxHeight: "200px", overflowY: "auto" }}
-                    >
-                      <div className="row">
-                        {validation.ips.map((ip, index) => (
-                          <div
-                            key={index}
-                            className="col-md-3 col-sm-4 col-6 mb-1"
-                          >
-                            <code className="text-primary">{ip}</code>
-                          </div>
-                        ))}
-                      </div>
+                    <label className="form-label">Eklenecek IP Adresi</label>
+                    <div className="border rounded p-2 bg-light">
+                      <code className="text-primary">{validation.ips[0]}</code>
                     </div>
                   </div>
                 )}

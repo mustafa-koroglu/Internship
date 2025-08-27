@@ -1,4 +1,4 @@
-package com.example.backend.filter; // Filter paketi
+package com.example.backend.filter;
 
 import com.example.backend.service.concretes.AppUserDetailsService; // Kullanıcı detay servisi
 import com.example.backend.utility.JwtUtil; // JWT utility
@@ -7,45 +7,49 @@ import jakarta.servlet.ServletException; // Servlet hatası
 import jakarta.servlet.http.HttpServletRequest; // HTTP istek
 import jakarta.servlet.http.HttpServletResponse; // HTTP yanıt
 import org.springframework.beans.factory.annotation.Autowired; // Autowired anotasyonu
+import org.springframework.lang.NonNull; // NonNull anotasyonu
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken; // Kullanıcı adı şifre kimlik doğrulama token'ı
 import org.springframework.security.core.context.SecurityContextHolder; // Güvenlik bağlam tutucusu
 import org.springframework.security.core.userdetails.UserDetails; // Kullanıcı detayları
 import org.springframework.stereotype.Component; // Component anotasyonu
 import org.springframework.web.filter.OncePerRequestFilter; // Her istek için bir kez çalışan filtre
+
 import java.io.IOException; // IO hatası
 
-@Component // Spring component anotasyonu
-public class JwtAuthenticationFilter extends OncePerRequestFilter { // JWT kimlik doğrulama filtresi
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    @Autowired // Bağımlılık enjeksiyonu
-    private JwtUtil jwtUtil; // JWT utility
+    @Autowired
+    private JwtUtil jwtUtil;
 
-    @Autowired // Bağımlılık enjeksiyonu
-    private AppUserDetailsService userDetailsService; // Kullanıcı detay servisi
+    @Autowired
+    private AppUserDetailsService userDetailsService;
 
-    @Override // Override anotasyonu
-    @SuppressWarnings("null") // Null uyarısını bastır
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) // Filtre iç metodu
-            throws ServletException, IOException { // Servlet ve IO hatası
+    @Override
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain)
+            throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization"); // Authorization başlığını al
-        String username = null; // Kullanıcı adı değişkeni
-        String jwt = null; // JWT değişkeni
+        final String authHeader = request.getHeader("Authorization");
+        String username = null;
+        String jwt = null;
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) { // Authorization başlığı Bearer ile başlıyorsa
-            jwt = authHeader.substring(7); // JWT'yi çıkar
-            username = jwtUtil.extractUsername(jwt); // Kullanıcı adını çıkar
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            jwt = authHeader.substring(7);
+            username = jwtUtil.extractUsername(jwt);
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) { // Kullanıcı adı varsa ve güvenlik bağlamında kimlik doğrulama yoksa
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username); // Kullanıcı detaylarını yükle
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-            if (jwtUtil.validateToken(jwt, userDetails.getUsername())) { // Token geçerliyse
-                UsernamePasswordAuthenticationToken authToken = // Kimlik doğrulama token'ı oluştur
+            if (jwtUtil.validateToken(jwt, userDetails.getUsername())) {
+                UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authToken); // Güvenlik bağlamına ekle
+                SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
-        filterChain.doFilter(request, response); // Filtre zincirine devam et
+        filterChain.doFilter(request, response);
     }
 }
